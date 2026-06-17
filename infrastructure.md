@@ -1,4 +1,3 @@
-```markdown
 # Infrastructure Architecture
 
 ## Runtime Architecture
