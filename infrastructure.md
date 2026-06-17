@@ -7,13 +7,13 @@ The server leverages the official Python MCP SDK using the `FastMCP` protocol de
 
 ```text
 ┌──────────────────────────┐             ┌──────────────────────────┐
-│  VS Code / LLM Client    │  ◄──stdio──►│   MESA Custom Server     │
+│  VS Code / LLM Client    │  <--stdio-->│   MESA Custom Server     │
 │  (Orchestration Layer)   │   JSON-RPC  │   (Python / FastMCP)     │
 └──────────────────────────┘             └────────────┬─────────────┘
-                                                      │
+                                                      |
                                            Subprocess Executions
-                                                      │
-                                                      ▼
+                                                      |
+                                                      v
                                          ┌──────────────────────────┐
                                          │  Local Sourced Context   │
                                          │  (gfortran / MESA SDK)   │
