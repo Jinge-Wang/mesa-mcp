@@ -18,3 +18,4 @@ The server leverages the official Python MCP SDK using the `FastMCP` protocol de
                                          │  Local Sourced Context   │
                                          │  (gfortran / MESA SDK)   │
                                          └──────────────────────────┘
+```
