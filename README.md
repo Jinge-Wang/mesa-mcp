@@ -10,6 +10,8 @@ and publications, and run MESA's build/run toolchain inside the user's own sourc
 > are complete — all seven tools below work. Phase 2 (community inlists, publications) is next; see
 > [TRACKER.md](TRACKER.md).
 
+> **Examples:** The server has been tested with Gemini CLI (now obsolete) and Antigravity CLI. Both successfully built and run a mesa star simulation. The command line histories are provided here: [Geimini CLI](docs/sample-gemini-cli.html) and [Antigravity CLI](docs/sample-agy-cli.html).
+
 ## Project goals
 
 1. **Deterministic environment execution** — wrap every compiler (`./mk`) and runtime (`./rn`,
