@@ -1,0 +1,18 @@
+{
+  "name": "mesa-mcp",
+  "owner": {
+    "name": "mesa-mcp",
+    "email": "jinge@berkeley.edu"
+  },
+  "metadata": {
+    "description": "MESA automation plugin marketplace (Claude Code).",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "mesa",
+      "source": "./claude-code/mesa",
+      "description": "Drive a local MESA installation: local-first documentation search, verified test-suite baselines, and sandboxed shell execution, plus the mesa-agent skill."
+    }
+  ]
+}

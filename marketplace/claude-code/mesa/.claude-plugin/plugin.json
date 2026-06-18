@@ -1,0 +1,18 @@
+{
+  "name": "mesa",
+  "description": "Drive a local MESA installation from your AI coding agent: local-first documentation search, verified test-suite baselines and real inlists, and sandboxed shell execution inside the sourced MESA environment.",
+  "version": "0.1.0",
+  "author": {
+    "name": "mesa-mcp",
+    "email": "jinge@berkeley.edu"
+  },
+  "keywords": [
+    "mesa",
+    "stellar evolution",
+    "astrophysics",
+    "mcp",
+    "inlist",
+    "test suite",
+    "mesastar"
+  ]
+}

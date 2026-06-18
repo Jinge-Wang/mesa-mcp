@@ -6,4 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "mcp>=1.28.0",
+    "httpx>=0.28",
+    "beautifulsoup4>=4.12",
 ]
+
+[tool.uv]
+# Flat-layout application, not a distributable package: `uv sync` installs the
+# dependencies into .venv; the server is run via `python main.py` from the repo root.
+package = false

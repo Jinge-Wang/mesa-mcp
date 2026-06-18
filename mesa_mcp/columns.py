@@ -1,0 +1,127 @@
+"""MESA output columns: parse *_columns.list reference, and read run data slices.
+
+The master ``$MESA_DIR/star/defaults/{history,profile}_columns.list`` files list every
+available output column (commented = available, uncommented = selected by default) with a
+short doc. ``read_history`` parses a run's ``LOGS/history.data`` with the standard library
+and returns a small, column-selected, downsampled slice — never the whole table.
+"""
+from __future__ import annotations
+
+import glob
+import os
+import re
+
+from . import config
+
+# A column line: optional leading '!', a name, then optional ' ! doc'.
+_COL_RE = re.compile(
+    r"^(?P<indent>\s*)(?P<bang>!)?\s*(?P<name>[A-Za-z_]\w*(?:\([^)]*\))?)\s*(?:!\s*(?P<doc>.*))?$"
+)
+_KINDS = {"history": "history_columns.list", "profile": "profile_columns.list"}
+_DEFAULT_HISTORY = ["model_number", "star_age", "log_L", "log_Teff", "log_R",
+                    "star_mass", "center_h1", "center_he4"]
+
+_MEMO: dict = {}
+
+
+def _master_path(mesa_dir: str, kind: str) -> "str | None":
+    fn = _KINDS.get(kind)
+    return os.path.join(mesa_dir, "star", "defaults", fn) if (mesa_dir and fn) else None
+
+
+def parse_columns(text: str) -> list:
+    """Parse a *_columns.list body into [{name, selected, doc}] (skips prose/headers)."""
+    cols = []
+    for ln in text.splitlines():
+        s = ln.lstrip()
+        if not s or s.startswith(("!#", "!-", "!=", "!*")):
+            continue
+        m = _COL_RE.match(ln)
+        if not m:
+            continue
+        cols.append({
+            "name": m.group("name"),
+            "selected": not m.group("bang"),
+            "doc": (m.group("doc") or "").strip(),
+        })
+    return cols
+
+
+def get_columns(env: dict, kind: str) -> list:
+    """Return the parsed master column list for 'history' or 'profile' (memoized)."""
+    path = _master_path(env.get(config.MESA_DIR_ENV, ""), kind)
+    if not path or not os.path.isfile(path):
+        return []
+    st = os.stat(path)
+    sig = (st.st_size, round(st.st_mtime, 3))
+    memo = _MEMO.get(path)
+    if memo and memo[0] == sig:
+        return memo[1]
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
+        cols = parse_columns(f.read())
+    _MEMO[path] = (sig, cols)
+    return cols
+
+
+def lookup(env: dict, name: str, kind: str = "history") -> dict:
+    """Look up an output column by name; returns {'exact', 'related', 'kind', 'total'}."""
+    cols = get_columns(env, kind)
+    t = name.strip().lower()
+    exact = [c for c in cols if c["name"].lower() == t]
+    related = [] if exact else [c for c in cols if t in c["name"].lower()][:25]
+    return {"exact": exact, "related": related, "kind": kind, "total": len(cols)}
+
+
+def _resolve_history_file(path: str) -> "str | None":
+    if os.path.isfile(path):
+        return path
+    for cand in (os.path.join(path, "LOGS", "history.data"),
+                 os.path.join(path, "history.data")):
+        if os.path.isfile(cand):
+            return cand
+    matches = sorted(glob.glob(os.path.join(path, "LOGS*", "history.data")))
+    return matches[0] if matches else None
+
+
+def read_history(env: dict, path: str, columns: "list | None" = None,
+                 last_n: int = 20, every: int = 1) -> dict:
+    """Read a run's history.data and return a selected, downsampled slice.
+
+    The MESA .data layout (blank lines removed) is: header numbers / header names / header
+    values / data numbers / data names / data rows.
+    """
+    p = os.path.abspath(os.path.expanduser(path))
+    data_file = _resolve_history_file(p)
+    if not data_file:
+        return {"error": f"No history.data found at or under {p} (has the run produced output?)."}
+
+    with open(data_file, "r", encoding="utf-8", errors="replace") as f:
+        nonblank = [ln for ln in f.read().splitlines() if ln.strip()]
+    if len(nonblank) < 6:
+        return {"error": f"{data_file} has a header but no data rows yet."}
+
+    names = nonblank[4].split()
+    data_lines = nonblank[5:]
+    index = {n: i for i, n in enumerate(names)}
+
+    requested = columns or [c for c in _DEFAULT_HISTORY if c in index] or names[:8]
+    selected = [c for c in requested if c in index]
+    missing = [c for c in requested if c not in index]
+
+    every = max(1, int(every))
+    last_n = max(1, int(last_n))
+    sampled = data_lines[::every][-last_n:]
+    rows = []
+    for ln in sampled:
+        vals = ln.split()
+        rows.append([vals[index[c]] if index[c] < len(vals) else "" for c in selected])
+
+    return {
+        "file": data_file,
+        "total_models": len(data_lines),
+        "columns": selected,
+        "missing": missing,
+        "rows": rows,
+        "shown": len(rows),
+        "every": every,
+    }

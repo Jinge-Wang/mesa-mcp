@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mesa": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/absolute/path/to/mesa-mcp",
+        "python",
+        "main.py"
+      ]
+    }
+  }
+}
