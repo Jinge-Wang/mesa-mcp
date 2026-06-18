@@ -117,6 +117,20 @@ def parse_text(text: str, namelist: str, module: str, source: str) -> list:
                 "doc": doc,
                 "source": source,
             })
+
+    # Many controls (notably pgstar) are assigned a default but have no `~~~~` doc header.
+    # Emit them too (without docs) so they're recognized as valid controls.
+    documented = {o["name"] for o in options}
+    for name, val in defaults.items():
+        if name not in documented:
+            options.append({
+                "name": name,
+                "namelist": namelist,
+                "module": module,
+                "default": val,
+                "doc": "",
+                "source": source,
+            })
     return options
 
 
@@ -158,6 +172,36 @@ def build_options(env: dict) -> list:
 
     _MEMO[mesa_dir] = (sig, options)
     return options
+
+
+# Conservative unit hints extracted from an option's documentation. Only clear matches emit
+# a unit (better to omit than to mislabel).
+_UNIT_PATTERNS = [
+    (re.compile(r"Msun/(?:year|yr)|Msun\s*/\s*yr", re.I), "Msun/yr"),
+    (re.compile(r"\bMsun\b", re.I), "Msun"),
+    (re.compile(r"\bLsun\b", re.I), "Lsun"),
+    (re.compile(r"\bRsun\b", re.I), "Rsun"),
+    (re.compile(r"\bin\s+years?\b", re.I), "yr"),
+    (re.compile(r"\bin\s+seconds?\b|\bin\s+sec\b", re.I), "s"),
+    (re.compile(r"\bin\s+days?\b", re.I), "day"),
+    (re.compile(r"\berg/g/s\b", re.I), "erg/g/s"),
+    (re.compile(r"\bg/cm\^?3\b", re.I), "g/cm^3"),
+    (re.compile(r"\bin\s+(?:K|Kelvin)\b", re.I), "K"),
+    (re.compile(r"\bcgs\b", re.I), "cgs"),
+]
+
+
+def units_for(doc: "str | None") -> "str | None":
+    """Return a short unit string heuristically extracted from an option's doc, or None.
+
+    Conservative on purpose — only emits a unit when a clear pattern matches.
+    """
+    if not doc:
+        return None
+    for rx, unit in _UNIT_PATTERNS:
+        if rx.search(doc):
+            return unit
+    return None
 
 
 def lookup(env: dict, name: str, namelist: "str | None" = None) -> dict:

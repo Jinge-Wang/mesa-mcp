@@ -16,7 +16,8 @@ Identify the user's scenario and **read the matching workflow file before acting
 | Look up / learn | Find a control, namelist, or doc page; understand physics | use `mesa_search_docs` → `mesa_fetch_doc_page` |
 
 Supporting references: `references/inlist-namelist-rules.md` (how to patch inlists safely),
-`references/shmesa.md` (optional bash helpers), `references/knowledge-sources.md` (where to find things).
+`references/visualization.md` (viewing PGSTAR plots headlessly), `references/shmesa.md` (optional bash
+helpers), `references/knowledge-sources.md` (where to find things).
 
 # Core rules (every scenario)
 
@@ -36,21 +37,29 @@ controls are renamed and added between versions. Re-check periodically that you'
 - `mesa_get_output_column` / `mesa_read_history` — discover output columns; read a small sliced `history.data`.
 - `mesa_search_community_inlists` / `mesa_download_community_inlist` — find & fetch published community inlists (ephemeral).
 - `mesa_search_publications` — find papers that used MESA (Zenodo community).
-- `mesa_execute_shell` — run `./mk`, `./rn`, `./re`, or `shmesa …` in a sibling work folder.
+- `mesa_execute_shell` — run a short command (`./mk`, `shmesa …`) in a work folder (bounded, blocking).
+- `mesa_run` / `mesa_run_status` / `mesa_stop_run` — start a long run (`./rn`/`./re`) DETACHED (non-blocking), follow progress, and cancel.
+- `mesa_enable_pgstar_file_output` / `mesa_latest_plot` / `mesa_list_plots` — view PGSTAR plots headlessly (file output), since the on-screen window won't open in VS Code.
 - `set_openmp_threads` — set parallelism (typically the available core count).
 
 ## Non-negotiables
 - **MESA core is read-only.** Never create, edit, delete, compile, or run inside the MESA install
-  (`$MESA_DIR`). Provision a **sibling work folder outside** the MESA tree. `mesa_execute_shell`
-  rejects a working directory inside `$MESA_DIR`.
-- **Verify before you write.** Never invent a control name or value — confirm it with
-  `mesa_get_option` (exact default + docs) or `mesa_search_docs` against the installed version
-  before putting it in an inlist.
-- **Check known issues.** Before a non-trivial setup, search `known bugs` for the active version.
-- **Patch, don't overwrite.** Change only the specific namelist lines you intend to; preserve
-  Fortran formatting (see `references/inlist-namelist-rules.md`). Read a file before editing it.
-- **Confirm before running.** Get explicit user consent before `./rn`/`./re` or any long or
-  destructive operation. Routine doc lookups and local edits don't need step-by-step confirmation.
+  (`$MESA_DIR`). Work in a sibling folder outside the MESA tree.
+- **Confirm the workspace directory.** Before `mesa_create_workspace`, propose the target path and
+  **get the user's explicit confirmation**; offer to use a directory they choose. Never provision a
+  work folder silently in the user's home (or anywhere) without asking first.
+- **Never start a simulation without explicit consent.** `./rn` / `./re` — or any run that may be
+  long or may not converge — MUST be confirmed by the user first, because it can block the session.
+  State the exact command and workspace, then wait. Compiling (`./mk` / `make`) and local edits you
+  may do directly, but say what you're doing.
+- **Never invent controls or values.** For any setting the user did NOT specify: reason about it,
+  state your reasoning and the value you propose, and **ask the user to confirm** before writing it.
+  Verify every control name and default with `mesa_get_option`. Put in **only the controls the
+  problem needs** — never copy in defaults or unrelated options.
+- **Patch, don't overwrite.** Apply changes with `mesa_set_inlist_option` (format-preserving, backed
+  up); never rewrite a whole inlist or `run_star_extras.f90`. Read a file before editing it, and
+  review the result with `mesa_show_inlist_settings`.
+- **Check known issues.** Before a non-trivial setup, check `known bugs` for the active version.
 - **Prefer first-party tools.** `shmesa` is optional and known-buggy; use it only as a convenience,
   never as something a result depends on.
 

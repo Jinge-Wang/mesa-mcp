@@ -60,8 +60,11 @@ mesa-mcp/               this repository      (Python FastMCP server)
 | `mesa_fetch_test_suite_details` | ✅ | Description + real inlists for one case. |
 | `mesa_create_workspace` / `mesa_list_workspaces` | ✅ | Provision/list work folders outside the MESA tree from a baseline. |
 | `mesa_set_inlist_option` | ✅ | Set a control in an inlist, format-preserving + backed up. |
+| `mesa_show_inlist_settings` | ✅ | Show set options vs MESA defaults (with units) for an inlist/workspace. |
 | `mesa_get_output_column` / `mesa_read_history` | ✅ | Look up output columns; read a sliced `history.data`. |
-| `mesa_execute_shell` | ✅ | Run a command in the sourced MESA env (writes sandboxed). |
+| `mesa_execute_shell` | ✅ | Run a short command in the sourced MESA env (writes sandboxed). |
+| `mesa_run` / `mesa_run_status` / `mesa_stop_run` | ✅ | Start a run detached (non-blocking), monitor progress, and cancel. |
+| `mesa_enable_pgstar_file_output` / `mesa_latest_plot` / `mesa_list_plots` | ✅ | Enable & view PGSTAR plots headlessly (file output). |
 | `mesa_search_community_inlists` / `mesa_download_community_inlist` | ✅ | Find & fetch shared inlists (ephemeral). |
 | `mesa_search_publications` | ✅ | Search the Zenodo MESA publications community. |
 | `mesa_clear_downloads` | ✅ | Purge the ephemeral session download dir (also auto-purged on exit). |

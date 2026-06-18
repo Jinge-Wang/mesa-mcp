@@ -15,10 +15,9 @@ MESA install.
    commented out, uncomment the specific line rather than adding a duplicate.
 4. **Recompile only if needed.** Inlist-only changes do **not** require `./mk`. Recompile
    (`mesa_execute_shell("./mk", "<work dir>")`) only after editing `src/*.f90`.
-5. **Run or restart — with consent.**
-   - Fresh run: `./rn`.
-   - Resume from the last checkpoint: `./re` (uses the latest photo).
-   Confirm with the user first; relay stdout/stderr and the exit code.
+5. **Run or restart — only with explicit user consent.** Confirm first, then start it **detached**
+   (non-blocking) with `mesa_run(<work dir>)` for a fresh run, or `mesa_run(<work dir>, "./re")` to
+   resume from the last photo. Monitor with `mesa_run_status`; `mesa_stop_run` cancels.
 6. **Verify the change took effect.** Check the terminal output / early `history.data` rows for the
    expected behavior (e.g. the new stopping condition or mass).
 

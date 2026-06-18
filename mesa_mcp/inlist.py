@@ -9,6 +9,7 @@ change`` this preserves indentation and inline comments.
 """
 from __future__ import annotations
 
+import glob
 import os
 import re
 import shutil
@@ -18,6 +19,8 @@ from . import config, reference
 _NAMELIST_OPEN = re.compile(r"^\s*&(\w+)")
 _NAMELIST_CLOSE = re.compile(r"^\s*/")
 _SIBLING_ASSIGN = re.compile(r"^(\s*)[A-Za-z]\w*\s*(?:\([^)]*\))?\s*=")
+# An active assignment line (used to read what's explicitly set in an inlist).
+_SET_RE = re.compile(r"^\s*(?P<name>[A-Za-z]\w*(?:\([^)]*\))?)\s*=\s*(?P<val>[^!]*?)(?:\s*!(?P<cmt>.*))?$")
 
 
 def _is_within(child: str, parent: str) -> bool:
@@ -106,7 +109,9 @@ def set_option(env: dict, inlist_path: str, name: str, value: str, namelist: "st
                               "controls may live in a different inlist (e.g. inlist_project).")}
         open_i, close_i = block
         indent = _detect_indent(lines, open_i, close_i)
-        lines.insert(close_i, f"{indent}{name} = {value}")
+        units = reference.units_for(lookup["exact"][0]["doc"]) if lookup["exact"] else None
+        comment = f"  ! {units}" if units else ""
+        lines.insert(close_i, f"{indent}{name} = {value}{comment}")
         action = "inserted"
 
     shutil.copy2(path, path + ".bak")
@@ -124,3 +129,67 @@ def set_option(env: dict, inlist_path: str, name: str, value: str, namelist: "st
         "default": lookup["exact"][0]["default"] if lookup["exact"] else None,
         "warning": warning,
     }
+
+
+def read_settings(path: str) -> list:
+    """Return the explicitly-set options in one inlist as [{namelist, name, value, comment}]."""
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return []
+    cur_nl = None
+    out = []
+    for ln in lines:
+        mo = _NAMELIST_OPEN.match(ln)
+        if mo:
+            cur_nl = mo.group(1)
+            continue
+        if _NAMELIST_CLOSE.match(ln):
+            cur_nl = None
+            continue
+        if not ln.strip() or ln.lstrip().startswith("!"):
+            continue
+        m = _SET_RE.match(ln)
+        if m and cur_nl:
+            out.append({
+                "namelist": cur_nl,
+                "name": m.group("name"),
+                "value": m.group("val").strip(),
+                "comment": (m.group("cmt") or "").strip(),
+            })
+    return out
+
+
+def show_settings(env: dict, path: str) -> dict:
+    """Summarize the options explicitly set across an inlist file or a workspace directory.
+
+    For each set option, include its value, the MESA default, and units (when known) — so the
+    user/agent can see exactly what is configured versus what is left at its default.
+    """
+    p = os.path.abspath(os.path.expanduser(path))
+    if os.path.isdir(p):
+        files = [f for f in sorted(glob.glob(os.path.join(p, "inlist*"))) if not f.endswith(".bak")]
+    elif os.path.isfile(p):
+        files = [p]
+    else:
+        return {"error": f"No inlist found at {p}."}
+    if not files:
+        return {"error": f"No inlist files under {p}."}
+
+    namelists: dict = {}
+    count = 0
+    for f in files:
+        for s in read_settings(f):
+            look = reference.lookup(env, s["name"].split("(")[0])
+            opt = look["exact"][0] if look["exact"] else None
+            namelists.setdefault(s["namelist"], []).append({
+                "name": s["name"],
+                "value": s["value"],
+                "default": opt["default"] if opt else None,
+                "units": reference.units_for(opt["doc"]) if opt else None,
+                "known": opt is not None,
+                "file": os.path.basename(f),
+            })
+            count += 1
+    return {"files": [os.path.basename(f) for f in files], "namelists": namelists, "count": count}

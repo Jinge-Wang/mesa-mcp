@@ -36,6 +36,7 @@ def register(mcp) -> None:
         src = sources.describe_source(env)
         shmesa_path = run_command(["which", "shmesa"], env)
         shmesa = shmesa_path if shmesa_path.startswith("/") else "NOT_FOUND"
+        pgstar_display = env.get("DISPLAY", "") or "not set (headless — use PGSTAR file output for plots)"
 
         available_cores = os.cpu_count() or 0
         omp_threads = env.get("OMP_NUM_THREADS", "NOT_SET")
@@ -50,15 +51,18 @@ def register(mcp) -> None:
             f"DOCS_VERSION: {ver['docs_version']}",
             f"DOCS_SOURCE: {src['mode']} -> {src['local_dir'] or src['network_base']}",
             f"SHMESA: {shmesa} (optional; treat as best-effort, may be buggy)",
+            f"PGSTAR_DISPLAY: {pgstar_display}",
             f"COMPILER_GFORTRAN: {gfortran_clean}",
             f"OMP_NUM_THREADS: {omp_threads}",
             f"AVAILABLE_CPU_CORES: {available_cores}",
             f"KERNEL_INFO: {uname_info}",
-            "PATH_ELEMENTS:",
         ]
-        for element in path_env.split(os.pathsep):
-            if element.strip():
-                lines.append(f"  - {element}")
+        path_entries = [e for e in path_env.split(os.pathsep) if e.strip()]
+        relevant = [e for e in path_entries if any(k in e.lower() for k in ("mesa", "sdk"))]
+        lines.append(f"PATH_ENTRIES: {len(path_entries)} total"
+                     + ("; MESA/SDK-related:" if relevant else " (none MESA-related)"))
+        for element in relevant:
+            lines.append(f"  - {element}")
         if env_status["issues"]:
             lines.append("CRITICAL_ERRORS:")
             for issue in env_status["issues"]:

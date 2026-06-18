@@ -21,7 +21,47 @@ def _format(res: dict) -> str:
     return "\n".join(lines)
 
 
+def _format_settings(res: dict) -> str:
+    if res.get("error"):
+        return res["error"]
+    if res["count"] == 0:
+        return (f"No options are explicitly set in {', '.join(res['files'])} — everything uses "
+                "MESA defaults.")
+    lines = [
+        f"Current inlist settings ({res['count']} set; files: {', '.join(res['files'])})",
+        "Only explicitly-set options are shown; every other control uses its MESA default "
+        "(query one with mesa_get_option).",
+        "",
+    ]
+    for nl, opts in res["namelists"].items():
+        lines.append(f"&{nl}")
+        for o in opts:
+            units = f"  [{o['units']}]" if o["units"] else ""
+            if not o["known"]:
+                note = "  (⚠ unknown control — not in this MESA version)"
+            elif o["default"] is not None:
+                note = f"  (default: {o['default']})"
+            else:
+                note = ""
+            lines.append(f"   {o['name']} = {o['value']}{units}{note}")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
 def register(mcp) -> None:
+    @mcp.tool()
+    def mesa_show_inlist_settings(path: str) -> str:
+        """Show every option explicitly set in an inlist (or across all inlists in a workspace
+        directory), grouped by namelist, with each value, its MESA default for comparison, and
+        units when known. Unlisted controls use their defaults — query a specific one with
+        mesa_get_option. Use this to review a configuration before running, and to catch
+        accidentally-set or hallucinated options (flagged as unknown).
+
+        Args:
+            path: an inlist file, or a workspace directory (all inlist* files are read).
+        """
+        return _format_settings(inlist.show_settings(build_env_context(), path))
+
     @mcp.tool()
     def mesa_set_inlist_option(inlist_path: str, name: str, value: str, namelist: str = "") -> str:
         """Set a single control in a MESA inlist, **preserving formatting**. Updates an
