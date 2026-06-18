@@ -24,7 +24,8 @@ real inlists) and adapting it — never from a blank file or from memory.
 8. **Run — only with user consent.** Confirm, then `mesa_execute_shell("./rn", "<work dir>")`.
    Runs can be long; this call is bounded, so for long evolutions tell the user and prefer a
    detached run when that capability lands.
-9. **Inspect output.** Read `LOGS/history.data` / profiles in slices; don't dump whole tables.
+9. **Inspect output.** Use `mesa_read_history(<work dir>, columns=…, last_n=…)` for a sliced,
+   downsampled view — never dump whole tables. `mesa_get_output_column` documents any column.
 
 ## Guardrails
 - Check `known bugs` (via `mesa_search_docs`) for the active version before relying on a feature.

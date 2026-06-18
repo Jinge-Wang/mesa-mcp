@@ -7,7 +7,7 @@ import sys
 from mcp.server.fastmcp import FastMCP
 
 from . import config, environment
-from .tools import community, execution, info, inlist, knowledge, workspace
+from .tools import community, execution, info, inlist, knowledge, telemetry, workspace
 
 
 def build_server() -> FastMCP:
@@ -18,6 +18,7 @@ def build_server() -> FastMCP:
     community.register(mcp)
     workspace.register(mcp)
     inlist.register(mcp)
+    telemetry.register(mcp)
     execution.register(mcp)
     return mcp
 

@@ -17,6 +17,11 @@ from . import config
 _COL_RE = re.compile(
     r"^(?P<indent>\s*)(?P<bang>!)?\s*(?P<name>[A-Za-z_]\w*(?:\([^)]*\))?)\s*(?:!\s*(?P<doc>.*))?$"
 )
+# Per-isotope columns are written as `prefix <iso>` (e.g. `center h1`), producing the output
+# column `center_h1`. Gated to an isotope-like second token so prose can't match.
+_TWO_TOKEN_RE = re.compile(
+    r"^(?P<indent>\s*)(?P<bang>!)?\s*(?P<a>[A-Za-z_]\w*)\s+(?P<b>[A-Za-z]{1,3}\d{0,3})\s*(?:!\s*(?P<doc>.*))?$"
+)
 _KINDS = {"history": "history_columns.list", "profile": "profile_columns.list"}
 _DEFAULT_HISTORY = ["model_number", "star_age", "log_L", "log_Teff", "log_R",
                     "star_mass", "center_h1", "center_he4"]
@@ -37,13 +42,20 @@ def parse_columns(text: str) -> list:
         if not s or s.startswith(("!#", "!-", "!=", "!*")):
             continue
         m = _COL_RE.match(ln)
-        if not m:
+        if m:
+            cols.append({
+                "name": m.group("name"),
+                "selected": not m.group("bang"),
+                "doc": (m.group("doc") or "").strip(),
+            })
             continue
-        cols.append({
-            "name": m.group("name"),
-            "selected": not m.group("bang"),
-            "doc": (m.group("doc") or "").strip(),
-        })
+        m2 = _TWO_TOKEN_RE.match(ln)
+        if m2:
+            cols.append({
+                "name": f"{m2.group('a')}_{m2.group('b')}",
+                "selected": not m2.group("bang"),
+                "doc": (m2.group("doc") or "").strip(),
+            })
     return cols
 
 

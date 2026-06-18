@@ -6,7 +6,7 @@ Conventions specific to `mesa-mcp`. Match the existing `main.py` style; it is th
 
 - **Python 3.12** (repo pins `>=3.12`). Use modern typing freely.
 - **Pure-Python and dependency-light.** Standard library first. Third-party deps are limited to
-  `mcp`, `httpx`, `beautifulsoup4`, and (later) `pandas`. Adding any new dependency requires the
+  `mcp`, `httpx`, `beautifulsoup4` (telemetry stays standard-library — no `pandas`). Adding any new dependency requires the
   user to run `uv add` themselves — see `rules.md`.
 
 ## Types & docstrings

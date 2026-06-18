@@ -32,6 +32,8 @@ controls are renamed and added between versions. Re-check periodically that you'
 - `mesa_search_docs` / `mesa_fetch_doc_page` — search/read the docs and all options (controls, guides, known bugs).
 - `mesa_fetch_test_suite_index` / `mesa_fetch_test_suite_details` — find a verified baseline and copy its real inlists.
 - `mesa_create_workspace` / `mesa_list_workspaces` — provision a work folder outside the MESA tree from a baseline, then run it.
+- `mesa_set_inlist_option` — set a control in an inlist, format-preserving + backed up (the safe edit tool).
+- `mesa_get_output_column` / `mesa_read_history` — discover output columns; read a small sliced `history.data`.
 - `mesa_search_community_inlists` / `mesa_download_community_inlist` — find & fetch published community inlists (ephemeral).
 - `mesa_search_publications` — find papers that used MESA (Zenodo community).
 - `mesa_execute_shell` — run `./mk`, `./rn`, `./re`, or `shmesa …` in a sibling work folder.

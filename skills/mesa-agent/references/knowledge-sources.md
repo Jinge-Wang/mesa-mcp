@@ -10,6 +10,7 @@ the matching version only when local files are absent.
 |---|---|
 | A control's **exact default + documentation** | `mesa_get_option('<name>')` — authoritative, parsed from the `.defaults` files (controls, star_job, pgstar, eos, kap, binary, astero). Optionally pass a `namelist`. |
 | A control/concept by **keyword** (discovery) | `mesa_search_docs(query)` — ranked across the docs **and** every option; then `mesa_fetch_doc_page(path)` to read a hit in full |
+| An **output column**'s meaning + whether it's default-selected | `mesa_get_output_column('<name>', kind='history' or 'profile')` — from the master `*_columns.list` |
 
 ## Documentation
 

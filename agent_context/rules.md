@@ -27,7 +27,7 @@ user wins — then update this file.
   diff, then stop for the user to run and verify. (User preference, stated explicitly.)
 - **Pure-Python, dependency-light.** Prefer the standard library. Do not pull in heavy search
   engines, scraping frameworks, or ORMs. Current allowed third-party deps: `mcp`, `httpx`,
-  `beautifulsoup4` (pending approval); `pandas` only when telemetry slicing arrives (Phase 4).
+  `beautifulsoup4`. Telemetry slicing uses the standard library (no `pandas`).
 
 ## 4. Prefer first-party over shmesa
 

@@ -25,7 +25,7 @@
 ## Stack
 
 - **Python 3.12**, pure-Python and dependency-light.
-- Deps: `mcp[cli]`, `httpx`, `beautifulsoup4` (pending approval); `pandas` only at Phase 4.
+- Deps: `mcp[cli]`, `httpx`, `beautifulsoup4`. Telemetry uses the standard library — no `pandas`.
 - `FastMCP` decorators exclusively; full type hints and explicit tool docstrings.
 
 See [`agent_context/coding_style.md`](agent_context/coding_style.md) for the full style guide.

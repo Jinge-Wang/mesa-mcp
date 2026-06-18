@@ -34,6 +34,9 @@ namelist makes MESA fail at startup.
 
 ## Patching discipline
 
+- **Apply the change with `mesa_set_inlist_option(path, name, value)`** — it patches in place
+  (preserving indentation and inline comments), backs up to `.bak`, validates the name, and refuses
+  to edit files inside `$MESA_DIR`. Edit by hand only when you need something the tool doesn't cover.
 - **Verify first.** Confirm the control name, namelist, and default with `mesa_get_option`
   (or `mesa_search_docs`) against the installed version before writing it.
 - **Change only the target line(s).** Don't rewrite the whole file or reorder entries.
