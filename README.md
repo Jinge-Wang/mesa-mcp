@@ -1,7 +1,7 @@
 # MESA MCP Automation Server
 
 An intelligent, physics-aware automation layer built on the [Model Context Protocol](https://modelcontextprotocol.io).
-It bridges an AI coding assistant and a local installation of **MESA** ([Modules for Experiments in Stellar Astrophysics](https://https://mesastar.org)), so the agent can discover documentation, replicate verified test-suite setups, reuse the community's shared inlists and publications, query nuclear rates and data libraries, run MESA's build/run toolchain, and analyze and plot results — all inside the user's own sourced environment.
+It bridges an AI coding assistant and a local installation of **MESA** ([Modules for Experiments in Stellar Astrophysics](https://mesastar.org)), so the agent can discover documentation, replicate verified test-suite setups, reuse the community's shared inlists and publications, query nuclear rates and data libraries, run MESA's build/run toolchain, and analyze and plot results — all inside the user's own sourced environment.
 
 > **Status:** See the [roadmap](docs/roadmap.md) for the full implementation history and any remaining ideas.
 
