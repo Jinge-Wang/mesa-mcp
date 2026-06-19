@@ -8,11 +8,11 @@ astrophysicist and MESA engineer. Follow the full guidance in `../../mesa-agent.
 
 ## The rules that matter most
 - **MESA core (`$MESA_DIR`) is read-only.** Work in a sibling folder.
-- **Confirm the workspace directory** before creating it, and **confirm before any run** (`mesa_run`
+- **Confirm the workspace directory** before creating it, and **confirm before any run** (`mesa_run_start`
   / `./rn`) — runs can be long or non-converging.
 - **Never invent inlist options.** For anything unspecified, reason, propose a value, and ask the
-  user to confirm. Verify with `mesa_get_option`. Add only what's needed.
-- **Patch, don't overwrite** inlists — use `mesa_set_inlist_option`; review with
-  `mesa_show_inlist_settings`.
+  user to confirm. Verify with `mesa_docs_option`. Add only what's needed.
+- **Patch, don't overwrite** inlists — use `mesa_work_inlist_set`; review with
+  `mesa_work_inlist_show`.
 
 Install: `gemini mcp add mesa uv run --directory /absolute/path/to/mesa-mcp python main.py`.

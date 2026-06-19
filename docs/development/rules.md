@@ -33,7 +33,7 @@ user wins — then update this file.
 ## 4. Prefer first-party over shmesa
 
 - `shmesa` is optional and known-buggy. **No tool may depend on it.** Expose it only as a
-  convenience the user/agent can call through `mesa_execute_shell`. Reliable behavior must come
+  convenience the user/agent can call through `mesa_env_shell`. Reliable behavior must come
   from our own code.
 
 ## 5. Local-first knowledge

@@ -15,7 +15,7 @@ Conventions specific to `mesa-mcp`. Match the existing `main.py` style; it is th
 - **Type hints on every function signature**, including return types.
 - **Every `@mcp.tool` has an explicit, structured docstring.** It is the calling agent's only
   contract. State: what the tool does, when to use it, each argument, and the return shape. Follow
-  the voice of the existing `mesa_get_info` / `mesa_set_openmp_threads` docstrings.
+  the voice of the existing `mesa_env_info` / `mesa_env_threads` docstrings.
 - Module-level and helper docstrings are one-line and purposeful (see `environment.py` helpers).
 
 ## Structure & modularity
@@ -57,4 +57,4 @@ Conventions specific to `mesa-mcp`. Match the existing `main.py` style; it is th
 
 - `snake_case` for functions/variables, `CapWords` for classes, `UPPER_CASE` for module constants.
 - Private helpers prefixed with `_` (consistent with `main.py`).
-- Tool names are prefixed `mesa_…` and read as verbs (`mesa_search_docs`, `mesa_fetch_test_suite_index`).
+- Tool names are prefixed `mesa_…` and read as verbs (`mesa_docs_search`, `mesa_docs_testsuite`).

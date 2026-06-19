@@ -203,20 +203,28 @@ Built and tested primarily around **single-star evolution**. Treat "⚠️" rows
 
 | Area | Status |
 |---|---|
-| **Single-star (`star`)** — diagnostics, docs/option lookup, test-suite replication, workspaces, inlist editing, run + monitor, telemetry/analysis/plotting | ✅ Supported & exercised |
+| **Single-star (`star`, incl. RSP pulsation)** — diagnostics, docs/option lookup, test-suite replication, workspaces, inlist editing, run + monitor, telemetry/analysis/plotting | ✅ Supported & exercised |
 | **Inlist-chain resolver** — entry inlist (CLI arg / `MESA_INLIST` / `inlist`) + recursive `read_extra_*` chain -> real `log_directory`/`star_history_name`/`photo_directory`; used by telemetry/runner/viz/inlist | ✅ Supported (single-star & binary) |
 | **Nuclear rates (`net`/REACLIB)** and the **network / Lodders-abundance / isotope** data libraries | ✅ Supported |
 | **`binary`** — template + all three namelists in `mesa_docs_option`; run + per-component telemetry; orbital `mesa_data_analyze`/`mesa_plot_make` (`star="binary"`); pgbinary file output | ⚠️ Supported, lightly tested |
 | **GYRE** — run on a pulsation model + parse modes (`mesa_run_gyre`, when GYRE is built) | ⚠️ Runnable; the MESA->GYRE pulse-file step isn't configured yet |
 | **`astero`** — `&astero_search_controls` options via the reference layer | ⚠️ Partial (no asteroseismic search workflow) |
 | **`colors`** — filter sets + stellar-model grids via `mesa_data_library` | ⚠️ Parsed/inventoried (no magnitude pipeline yet) |
-| **`eos` / `kap` / `atm` / `ionization`** | ⚠️ Options (where they ship `.defaults`) + structured inventory; no numeric evaluation |
+| **`eos` / `kap`** — options (`.defaults`) via `mesa_docs_option` + data inventory via `mesa_data_library` | ⚠️ No numeric evaluation (call an EOS/opacity point) |
+| **`atm` / `ionization` / `turb` (MLT/TDC) / `neu`** — no namelist of their own; configured through `&controls`/`&star_job` | ✅ Covered by the option reference (`atm`/`ionization` also inventoried) |
 | **`adipls`** (alternative oscillation code), **`stella`** (radiation-hydro light curves) | ❌ Not driven (standalone executables) |
 | **Platform** | macOS (Apple Silicon) tested; Linux supported by design but less exercised; Windows unsupported |
 
 ### Module coverage (MESA root)
 
-Science modules: `star` ✅; `binary` ⚠️; `net`/`rates`/`chem` ✅; `eos`/`kap`/`atm`/`ionization` ⚠️ (reference + inventory); `colors` ⚠️; `astero` ⚠️; `gyre` ⚠️; `adipls`/`stella` ❌. The numerical-infrastructure libraries (`const`, `math`, `mtx`, `num`, `auto_diff`, `turb`, `neu`, `star_data`, `interp_1d/2d`, `utils`) are internal and out of scope. Broadening this is tracked as **Phase 14** in the [roadmap](docs/roadmap.md).
+Going module by module (the internal **math/infrastructure** libraries — `const`, `math`, `mtx`, `num`, `auto_diff`, `interp_1d/2d`, `utils`, `star_data` — are out of scope):
+
+- ✅ **Full:** `star` (including **RSP** radial pulsation, via the test-suite cases), `net`, `rates`, `chem`, the bundled `data/` libraries.
+- ✅ **Configured through `star` (no namelist of their own):** `atm`, `turb` (MLT/TDC convection), `neu` (neutrino cooling), `ionization` — set via `&controls`/`&star_job`, so the option reference + inlist editor already cover them (`atm`/`ionization` also have a `mesa_data_library` inventory).
+- ⚠️ **Partial:** `binary` (template + all three namelists + run + per-component & orbital telemetry; lightly tested); `eos` / `kap` (options + inventory, no numeric evaluation); `colors` (filters + SED grids parsed, no magnitude pipeline); `astero` (options + test-suite workspace, no asteroseismic search); `gyre` (run + parse modes, no MESA→GYRE pulse-file step).
+- ❌ **Not driven:** `adipls` (alternative oscillation code) and `stella` (radiation-hydro light curves) — both standalone executables.
+
+Broadening this is tracked as **Phase 14** in the [roadmap](docs/roadmap.md).
 
 ## Documentation
 
@@ -225,9 +233,9 @@ Science modules: `star` ✅; `binary` ⚠️; `net`/`rates`/`chem` ✅; `eos`/`k
   - [docs/infrastructure.md](docs/infrastructure.md) — runtime, package layout, data flow, caching.
   - [docs/roadmap.md](docs/roadmap.md) — the phased implementation tracker.
   - [docs/examples/](docs/examples/) — recorded example sessions.
-- **[AGENTS.md](AGENTS.md)** — the start-here entry point for any agent working in this repo.
+- **[docs/AGENTS.md](docs/AGENTS.md)** — the start-here entry point for any agent working in this repo.
 - **[skills/mesa-agent/](skills/mesa-agent/)** — the runtime skill that ships in the plugin.
 
 ## Development
 
-Start with [AGENTS.md](AGENTS.md), then [docs/development/](docs/development/). The non-negotiable coding guardrails are in [docs/development/rules.md](docs/development/rules.md).
+Start with [docs/AGENTS.md](docs/AGENTS.md), then [docs/development/](docs/development/). The non-negotiable coding guardrails are in [docs/development/rules.md](docs/development/rules.md).

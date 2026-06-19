@@ -29,12 +29,13 @@ config.py        Docs base URL, cache dir, session temp dir, timeouts, env-var n
 environment.py   Source shell + load_mesa → MESA env; validation.
 version.py       data/version_number → docs version (release vs git hash).
 shell.py         Bounded command execution in the sourced env.
-runner.py · cleanup.py · columns.py · inlist.py · reference.py · workspace.py · viz.py · live_view.py
-rates.py · data_libs.py · plotting.py · analysis.py · display.py · installer.py   (logic modules)
+runner.py · cleanup.py · columns.py · inlist.py · inlist_resolver.py · reference.py · workspace.py
+viz.py · live_view.py · rates.py · data_libs.py · plotting.py · analysis.py · display.py
+installer.py · gyre.py · docs_server.py                                        (logic modules)
 docs/            sources.py · fetch.py · index.py · search.py · test_suite.py
 knowledge/       inlists.py · publications.py · addons.py
-tools/           thin FastMCP wrappers: info · knowledge · community · workspace · inlist ·
-                 telemetry · run · viz · rates · data · plotting · analysis · install · execution
+tools/           thin FastMCP wrappers, seven mesa_<area>_* families:
+                 env · docs · find · work · run · data · plot
 ```
 
 `tools/` modules hold no logic — they validate inputs, call a logic module, and format the result.
@@ -50,6 +51,10 @@ The full living module map and responsibilities are in
    the **network** base `https://docs.mesastar.org/en/<version>/`.
 4. `docs/{index,search,fetch,test_suite}.py` serve content local-first; network is fallback.
 5. `shell.py` runs commands in the sourced env, guarding writes to stay **outside** `$MESA_DIR`.
+6. For a workspace, `inlist_resolver.py` resolves the entry inlist (CLI arg → `MESA_INLIST` →
+   `inlist`) and the recursive `read_extra_*` chain → the **real** output dirs/filenames
+   (`log_directory`, `star_history_name`, `photo_directory`; binary `inlist_names`/`history_name`),
+   which the telemetry/runner/viz/inlist tools consume instead of assuming `LOGS`/`inlist1`.
 
 ## Why local-first / APIs (not HTML scraping)
 

@@ -1,47 +1,11 @@
-# AGENTS.md — Start Here
+# AGENTS.md
 
-This file is loaded automatically by AI coding agents. **Read it before doing anything in this
-repository.**
+**Full start-here guide:** [docs/AGENTS.md](docs/AGENTS.md) — read it before doing anything in this repo.
 
-## What this project is
+`mesa-mcp` is a Model Context Protocol server that drives a local **MESA** install. Quick links:
+- Dev guidance: [docs/development/](docs/development/) · Roadmap: [docs/roadmap.md](docs/roadmap.md)
+- Runtime skill (ships in the plugin): [skills/mesa-agent/](skills/mesa-agent/)
 
-`mesa-mcp` is a Python [Model Context Protocol](https://modelcontextprotocol.io) server that lets
-an AI coding agent drive a local installation of **MESA** (Modules for Experiments in Stellar
-Astrophysics): search documentation, replicate verified test-suite setups, reuse the community's
-shared inlists and publications, and execute MESA's build/run toolchain inside the user's sourced
-shell environment.
-
-Primary host workflow: **VS Code + the Claude extension.** The design is kept portable so it can
-later ship to Cursor / Codex / Copilot CLI / Gemini.
-
-## Before you write code: read [`docs/development/`](docs/development/) in this order
-
-1. [`docs/development/assumptions.md`](docs/development/assumptions.md) — the verified facts about this
-   machine, the two MESA installs, and the environment. Don't re-derive these; trust them but
-   verify a path still exists before depending on it.
-2. [`docs/development/rules.md`](docs/development/rules.md) — non-negotiable guardrails.
-3. [`docs/development/coding_style.md`](docs/development/coding_style.md) — how code in this repo is written.
-4. [`docs/development/architecture.md`](docs/development/architecture.md) — module map and data flow.
-5. [`docs/development/glossary.md`](docs/development/glossary.md) — MESA domain terms.
-
-The phased roadmap lives in [docs/roadmap.md](docs/roadmap.md).
-
-## The five rules you must never break
-
-1. **MESA core is read-only.** Never create, edit, or delete anything under a MESA install
-   (`$MESA_DIR`). All work happens in sibling workspace folders outside the MESA tree.
-2. **Dependencies need explicit user approval.** Never run `uv add` / `pip install` yourself.
-   Propose the exact command and the `pyproject.toml` diff, then stop and let the user run it.
-3. **Prefer first-party logic over `shmesa`.** `shmesa` is on PATH but the user has hit bugs in it;
-   never make a tool depend on it. It is an optional convenience callable via `mesa_execute_shell`.
-4. **Local-first, then network.** Read the local `$MESA_DIR/docs/source/*.rst` before reaching the
-   internet. JS-rendered pages (Sphinx search, Zenodo records) must be accessed via local files or
-   REST APIs, never by scraping the rendered HTML.
-5. **Patch, don't overwrite.** Never rewrite a whole `inlist` or `run_star_extras.f90`. Make
-   precise, format-preserving edits.
-
-## Two rule sets, two audiences (don't confuse them)
-
-- **[`docs/development/`](docs/development/)** guides the agent **developing this server** — i.e. you, right now.
-- **[`skills/mesa-agent/`](skills/mesa-agent/)** guides the agent **using MESA through this server at runtime**, and ships
-  inside the Claude plugin. When you edit one, check whether the other needs the same change.
+The five non-negotiable rules (MESA core is read-only; dependencies need explicit user approval;
+prefer first-party logic over `shmesa`; local-first then network; patch, don't overwrite) are spelled
+out in [docs/AGENTS.md](docs/AGENTS.md).

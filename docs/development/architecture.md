@@ -18,7 +18,7 @@ server.py        Builds the FastMCP instance, registers tools, exposes main().
 config.py        Constants: docs base URL, OS cache dir, session temp dir, timeouts, env-var names.
 environment.py   Sources the user's shell + load_mesa → MESA env; validation. (Moved from main.py.)
 version.py       Detect MESA version from data/version_number → docs version (release vs hash).
-shell.py         Bounded command execution in the sourced env (core of mesa_execute_shell).
+shell.py         Bounded command execution in the sourced env (core of mesa_env_shell).
 docs/
   sources.py     Resolve docs source: local $MESA_DIR/docs/source vs network base (live MESA_DIR).
   fetch.py       httpx fetch + on-disk cache; convert .rst → readable text.
@@ -45,38 +45,35 @@ plotting.py      matplotlib (Agg) history/profile plots → PNG under <ws>/plots
 analysis.py      Extract stellar properties: analyze_history (core masses, central abundances,
                  phase, TAMS) and analyze_profile (mixing zones, abundances, burning regions).
 display.py       Detect on-screen-window capability (macOS Quartz/XQuartz, Linux X11/Wayland) +
-                 recommended matplotlib backend. Used by mesa_get_info and live_view.
+                 recommended matplotlib backend. Used by mesa_env_info and live_view.
 live_view.py     Standalone auto-refreshing image viewer (watches a workspace's newest PNG) +
                  detached launch/stop helpers. Reads only files MESA writes — no PGSTAR conflict.
 installer.py     MESA install help: detect_platform, fetch latest release + per-platform SDK from
                  the Zenodo software API, build/write a load_mesa shell function (confirm-gated).
-inlist.py        Format-preserving inlist editing + read_settings.
-reference.py     Parse *.defaults for authoritative option metadata.
-viz.py           Surface PGSTAR plot images; enable headless file output.
+inlist.py        Format-preserving inlist editing + read_settings; set_option redirects to the
+                 chain file that owns a namelist (via inlist_resolver) when it's elsewhere.
+inlist_resolver.py  Resolve the entry inlist (CLI arg → MESA_INLIST → 'inlist') + the recursive
+                 read_extra_<ns>_inlist chain → real log_directory/star_history_name/photo_directory
+                 (and binary inlist_names/history_name). layout() is consumed by columns/runner/viz/inlist.
+reference.py     Parse *.defaults for authoritative option metadata (all namelists incl. binary).
+viz.py           Surface PGSTAR/pgbinary plot images; enable headless file output (resolver-located files).
 workspace.py     Provision/list work folders from baselines (outside $MESA_DIR).
-tools/            Thin FastMCP wrappers (no logic):
-  info.py        mesa_get_info, mesa_set_openmp_threads.
-  knowledge.py   mesa_get_option, mesa_search_docs, mesa_fetch_doc_page, mesa_fetch_test_suite_index/details, mesa_serve_docs, mesa_stop_docs.
-  community.py   mesa_search_community_inlists, mesa_download_community_inlist, mesa_search_publications, mesa_clear_downloads.
-  workspace.py   mesa_create_workspace, mesa_list_workspaces, mesa_clear_workspace.
-  inlist.py      mesa_set_inlist_option, mesa_show_inlist_settings.
-  telemetry.py   mesa_get_output_column, mesa_read_history.
-  run.py         mesa_run, mesa_run_status, mesa_run_stop.
-  viz.py         mesa_enable_pgstar_file_output, mesa_latest_plot, mesa_list_plots.
-  rates.py       mesa_get_reaction_rate, mesa_set_rate_factor.
-  data.py        mesa_list_data_libraries, mesa_load_data.
-  plotting.py    mesa_plot_history, mesa_plot_profile.
-  analysis.py    mesa_analyze_history, mesa_analyze_profile.
-  viz.py         …also mesa_open_live_view, mesa_close_live_view (live_view.py).
-  install.py     mesa_install_plan, mesa_install_set_env.
-  gyre.py        mesa_run_gyre.
-  execution.py   mesa_execute_shell.
+tools/            Thin FastMCP wrappers (no logic) — seven mesa_<area>_* families:
+  env.py         mesa_env_info, mesa_env_shell, mesa_env_threads, mesa_env_install(action).
+  docs.py        mesa_docs_option, mesa_docs_search, mesa_docs_page, mesa_docs_testsuite(case),
+                 mesa_docs_serve(action).
+  find.py        mesa_find_search(source), mesa_find_download, mesa_find_clear.
+  work.py        mesa_work_create, mesa_work_list, mesa_work_clear,
+                 mesa_work_inlist_set, mesa_work_inlist_show.
+  run.py         mesa_run_start, mesa_run_status, mesa_run_stop, mesa_run_gyre.
+  data.py        mesa_data_history, mesa_data_column, mesa_data_analyze(kind),
+                 mesa_data_library, mesa_data_rate(action).
+  plot.py        mesa_plot_make(kind), mesa_plot_view(action), mesa_plot_pgstar, mesa_plot_live(action).
 
-Binary runs: the telemetry/analysis/plotting tools take a `star` selector ('1'/'2' → LOGS1/LOGS2,
-'binary' → binary_history.data), threaded through columns._resolve_history_file / load_mesa_data.
-
-Planned (Phase 13): knowledge/Zenodo/add-ons expansion — Zenodo software + paper-linked inlists,
-marketplace add-ons, extending_mesa research, Kippenhahn via ecosystem-tool discovery.
+Binary runs: the telemetry/analysis/plotting tools take a `star` selector ('1'/'2' → each component,
+'binary' → binary_history.data); the actual log dirs / filenames come from inlist_resolver.layout
+(not assumed), threaded through columns._resolve_history_file / load_mesa_data. mesa_data_analyze and
+mesa_plot_make have binary/orbital branches for star='binary'; mesa_plot_pgstar also enables &pgbinary.
 ```
 
 ## Core data flow

@@ -1,7 +1,7 @@
 # Glossary — MESA domain vocabulary
 
 Just enough MESA terminology to read the code, docs, and test cases. For depth, use
-`mesa_search_docs` / the local `$MESA_DIR/docs/source/`.
+`mesa_docs_search` / the local `$MESA_DIR/docs/source/`.
 
 ## Install & environment
 
