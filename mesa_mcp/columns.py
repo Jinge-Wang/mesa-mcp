@@ -100,8 +100,9 @@ def load_mesa_data(path: str, file_type: "str | None" = None):
 
     This is the data path for the analysis/plotting tools (numpy-backed columns via
     ``md.data(name)`` and names via ``md.bulk_names``). ``mesa_reader`` is imported lazily so the
-    stdlib ``read_history`` slicer keeps working without the dependency. ``file_type`` is
-    ``'history'``/``'profile'`` (auto-detected when None). Raises RuntimeError if unavailable.
+    stdlib ``read_history`` slicer keeps working without the dependency. ``file_type`` is our own
+    hint (``'history'``/``'profile'``) used only to resolve the path; mesa_reader auto-detects the
+    ``.data`` file as a log. Raises RuntimeError if unavailable.
     """
     p = os.path.abspath(os.path.expanduser(path))
     resolved = _resolve_history_file(p) if (file_type != "profile") else (p if os.path.isfile(p) else None)
@@ -113,7 +114,7 @@ def load_mesa_data(path: str, file_type: "str | None" = None):
     except ImportError as e:
         raise RuntimeError("mesa_reader is not installed — run `uv add mesa_reader`, or use "
                            "read_history for a stdlib slice.") from e
-    return MesaData(resolved, file_type=file_type)
+    return MesaData(resolved)  # .data → mesa_reader 'log' type (history or profile)
 
 
 def _coerce(v: str):

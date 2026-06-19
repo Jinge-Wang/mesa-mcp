@@ -44,7 +44,7 @@ def _targets(ws: str) -> list:
     for logs in sorted(glob.glob(os.path.join(ws, "LOGS*"))):
         if os.path.isdir(logs):
             paths.append(logs)
-    for name in ("photos", "photos1", "photos2", "png"):
+    for name in ("photos", "photos1", "photos2", "png", "plots"):
         p = os.path.join(ws, name)
         if os.path.isdir(p):
             paths.append(p)

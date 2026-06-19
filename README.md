@@ -6,12 +6,13 @@ installation of **MESA** (Modules for Experiments in Stellar Astrophysics), so t
 discover documentation, replicate verified test-suite setups, reuse the community's shared inlists
 and publications, and run MESA's build/run toolchain inside the user's own sourced environment.
 
-> **Status:** Phases 0–10 are complete — docs/knowledge tools, workspace orchestration, inlist
+> **Status:** Phases 0–11 are complete — docs/knowledge tools, workspace orchestration, inlist
 > patching, telemetry, detached runs, headless PGSTAR plotting, community inlists/publications, the
 > reliability & safety quick-wins (JSON run-status, run-over-output guard, confirm-gated cleanup),
-> and the rates & data-library toolset (REACLIB rate queries, rate-factor scaling, network/abundance/
-> isotope loaders). Phases 11–13 (analyzers + plotting, live viz + MESA install toolset,
-> knowledge/Zenodo/add-ons expansion) are planned; see [TRACKER.md](TRACKER.md).
+> the rates & data-library toolset (REACLIB rate queries, rate-factor scaling, network/abundance/
+> isotope loaders), and the analysis & plotting toolset (history/profile analyzers, matplotlib HR/
+> abundance plots). Phases 12–13 (live viz + MESA install toolset, knowledge/Zenodo/add-ons
+> expansion) are planned; see [TRACKER.md](TRACKER.md).
 
 > **Examples:** The server has been tested with Gemini CLI (now obsolete) and Antigravity CLI. Both successfully built and run a mesa star simulation. The command line histories are provided here: [Geimini CLI](docs/sample-gemini-cli.html) and [Antigravity CLI](docs/sample-agy-cli.html).
 
@@ -75,6 +76,8 @@ mesa-mcp/               this repository      (Python FastMCP server)
 | `mesa_get_reaction_rate` | ✅ | Look up a reaction's JINA REACLIB fit set(s), citation, and rate evaluated at T9. |
 | `mesa_set_rate_factor` | ✅ | Scale a specific reaction's rate (wraps the `special_rate_factor` array syntax). |
 | `mesa_list_data_libraries` / `mesa_load_data` | ✅ | Browse `data/` libraries; load networks, solar abundances, isotope properties. |
+| `mesa_plot_history` / `mesa_plot_profile` | ✅ | Render history/profile plots (matplotlib → inline PNG); presets `hr` and `abundance`. |
+| `mesa_analyze_history` / `mesa_analyze_profile` | ✅ | Extract core masses, central abundances, evolutionary phase, convective zones, burning regions. |
 
 ## Installation (target: Claude Code / VS Code, macOS & Linux)
 

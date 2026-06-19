@@ -38,6 +38,10 @@ rates.py         Parse data/rates_data REACLIB + reactions.list; evaluate a rate
                  (wrap special_rate_factor array syntax via inlist.set_option).
 data_libs.py     Read-only data/ access: list libraries; parse .net networks, Lodders abundances,
                  isotope properties; list files for the rest.
+plotting.py      matplotlib (Agg) history/profile plots → PNG under <ws>/plots; presets hr
+                 (credit Gautschy's SimpleMesaHRD) and abundance. Built on columns.load_mesa_data.
+analysis.py      Extract stellar properties: analyze_history (core masses, central abundances,
+                 phase, TAMS) and analyze_profile (mixing zones, abundances, burning regions).
 inlist.py        Format-preserving inlist editing + read_settings.
 reference.py     Parse *.defaults for authoritative option metadata.
 viz.py           Surface PGSTAR plot images; enable headless file output.
@@ -53,10 +57,12 @@ tools/            Thin FastMCP wrappers (no logic):
   viz.py         mesa_enable_pgstar_file_output, mesa_latest_plot, mesa_list_plots.
   rates.py       mesa_get_reaction_rate, mesa_set_rate_factor.
   data.py        mesa_list_data_libraries, mesa_load_data.
+  plotting.py    mesa_plot_history, mesa_plot_profile.
+  analysis.py    mesa_analyze_history, mesa_analyze_profile.
   execution.py   mesa_execute_shell.
 
-Planned (Phases 11–13): plotting.py (matplotlib presets), analysis.py (history/profile
-analyzers — built on columns.load_mesa_data), live-viz + install toolsets.
+Planned (Phases 12–13): live-viz window + X11/XQuartz detection, MESA install toolset,
+knowledge/Zenodo/add-ons expansion (incl. Kippenhahn via ecosystem-tool discovery).
 ```
 
 ## Core data flow
