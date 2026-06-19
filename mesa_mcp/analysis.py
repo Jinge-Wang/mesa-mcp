@@ -16,10 +16,35 @@ _MIXING = {1: "convective", 2: "softened_convective", 3: "overshoot",
 
 _CORE_COLS = ["he_core_mass", "c_core_mass", "o_core_mass", "si_core_mass", "fe_core_mass"]
 _CENTER_COLS = ["center_h1", "center_he4", "center_c12", "center_n14", "center_o16", "center_ne20"]
+# binary_history.data is orbital, not stellar — summarize these instead of core masses/abundances.
+_BINARY_COLS = ["model_number", "age", "period_days", "binary_separation", "eccentricity",
+                "star_1_mass", "star_2_mass", "lg_mtransfer_rate", "lg_mstar_dot_1",
+                "lg_mstar_dot_2", "rl_relative_overflow_1", "rl_relative_overflow_2"]
 
 
 def _final(md, col):
     return float(md.data(col)[-1]) if md.in_data(col) else None
+
+
+def _analyze_binary(md, ws: str) -> dict:
+    """Summarize a binary run's orbital evolution from binary_history.data (not stellar diagnostics)."""
+    import numpy as np
+    final = {c: _final(md, c) for c in _BINARY_COLS if md.in_data(c)}
+    out = {"workspace": ws, "kind": "binary", "final": final,
+           "total_models": int(len(md.data("model_number"))) if md.in_data("model_number") else None}
+    # Mass-transfer onset: first model where lg_mtransfer_rate climbs above a quiescent floor
+    # (MESA writes a large negative log, e.g. -99, when there is effectively no transfer).
+    if md.in_data("lg_mtransfer_rate"):
+        mt = md.data("lg_mtransfer_rate")
+        on = np.where(mt > -50)[0]
+        if on.size:
+            i = int(on[0])
+            if md.in_data("model_number"):
+                out["mass_transfer_onset_model"] = int(md.data("model_number")[i])
+            if md.in_data("age"):
+                out["mass_transfer_onset_age_yr"] = float(md.data("age")[i])
+            out["ongoing_mass_transfer"] = bool(mt[-1] > -50)
+    return out
 
 
 def _phase(center: dict) -> str:
@@ -46,6 +71,9 @@ def analyze_history(env: dict, workspace: str, star: str = "") -> dict:
         md = columns.load_mesa_data(ws, file_type="history", star=star)
     except RuntimeError as e:
         return {"error": str(e)}
+
+    if str(star).strip().lower() in ("binary", "b"):
+        return _analyze_binary(md, ws)
 
     center = {c: _final(md, c) for c in _CENTER_COLS if md.in_data(c)}
     cores = {c: _final(md, c) for c in _CORE_COLS if md.in_data(c)}

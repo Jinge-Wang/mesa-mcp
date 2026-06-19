@@ -97,7 +97,7 @@ def run_gyre(env: dict, workspace: str, inlist: str = "gyre.in",
         proc = subprocess.run([gbin, os.path.basename(inlist_path)], cwd=ws, env=run_env,
                               capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
-        return {"error": f"GYRE timed out after {timeout}s. Run it via mesa_execute_shell if it "
+        return {"error": f"GYRE timed out after {timeout}s. Run it via mesa_env_shell if it "
                          "legitimately needs longer."}
     except Exception as e:
         return {"error": f"Failed to launch GYRE: {e}"}

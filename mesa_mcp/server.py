@@ -7,30 +7,22 @@ import sys
 from mcp.server.fastmcp import FastMCP
 
 from . import config, environment
-from .tools import (
-    analysis, community, data, execution, gyre, info, inlist, install, knowledge, plotting, rates,
-    run, telemetry, viz, workspace,
-)
+from .tools import data, docs, env as env_tools, find, plot, run, work
 
 
 def build_server() -> FastMCP:
-    """Construct the FastMCP instance with every tool registered."""
+    """Construct the FastMCP instance with every tool registered.
+
+    Tools are organized into seven ``mesa_<area>_*`` families: env, docs, find, work, run, data, plot.
+    """
     mcp = FastMCP("mesa-mcp-server")
-    info.register(mcp)
-    knowledge.register(mcp)
-    community.register(mcp)
-    workspace.register(mcp)
-    inlist.register(mcp)
-    telemetry.register(mcp)
+    env_tools.register(mcp)
+    docs.register(mcp)
+    find.register(mcp)
+    work.register(mcp)
     run.register(mcp)
-    viz.register(mcp)
-    rates.register(mcp)
     data.register(mcp)
-    plotting.register(mcp)
-    analysis.register(mcp)
-    install.register(mcp)
-    gyre.register(mcp)
-    execution.register(mcp)
+    plot.register(mcp)
     return mcp
 
 

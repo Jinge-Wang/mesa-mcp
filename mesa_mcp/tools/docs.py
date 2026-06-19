@@ -1,4 +1,8 @@
-"""FastMCP tools: documentation search/fetch and test-suite discovery (local-first)."""
+"""FastMCP tools — documentation & reference knowledge (``mesa_docs_*``), local-first.
+
+Docs search/fetch, the authoritative option reference, test-suite discovery, and an optional
+local docs web server.
+"""
 from __future__ import annotations
 
 import json
@@ -86,7 +90,7 @@ def _format_option(res: dict, name: str) -> str:
     related = res.get("related", [])
     if not exact and not related:
         return (f"No MESA option found matching '{name}'. Check the spelling, or use "
-                "mesa_search_docs for a broader search. (Requires MESA_DIR with defaults files.)")
+                "mesa_docs_search for a broader search. (Requires MESA_DIR with defaults files.)")
     lines = []
     for o in exact:
         default = o["default"] if o["default"] is not None else "(no simple default)"
@@ -105,22 +109,23 @@ def _format_option(res: dict, name: str) -> str:
 
 def register(mcp) -> None:
     @mcp.tool()
-    def mesa_get_option(name: str, namelist: str = "") -> str:
+    def mesa_docs_option(name: str, namelist: str = "") -> str:
         """Look up a MESA inlist control/option by name and return its namelist, default
         value, and full documentation — parsed from the authoritative *.defaults files in
-        $MESA_DIR. This is the precise way to VERIFY a control and its default before writing
-        it into an inlist; prefer it over guessing. If there is no exact match, returns
-        related option names.
+        $MESA_DIR (controls, star_job, eos, kap, pgstar, and the binary namelists
+        binary_controls / binary_job / pgbinary, plus astero). This is the precise way to VERIFY a
+        control and its default before writing it into an inlist; prefer it over guessing. If there
+        is no exact match, returns related option names.
 
         Args:
-            name: the control name (e.g. 'initial_mass', 'use_Type2_opacities').
-            namelist: optional namelist filter (e.g. 'controls', 'star_job', 'kap').
+            name: the control name (e.g. 'initial_mass', 'use_Type2_opacities', 'mass_transfer_alpha').
+            namelist: optional namelist filter (e.g. 'controls', 'star_job', 'binary_controls').
         """
         env = build_env_context()
         return _format_option(reference.lookup(env, name, namelist or None), name)
 
     @mcp.tool()
-    def mesa_search_docs(query: str, limit: int = 10) -> str:
+    def mesa_docs_search(query: str, limit: int = 10) -> str:
         """Search the MESA documentation and return the top ranked matches (title,
         section, source path/URL, and a snippet). Reads the local docs in
         $MESA_DIR/docs/source first (offline, version-correct); falls back to
@@ -137,11 +142,11 @@ def register(mcp) -> None:
         return _format_search(search_mod.search_docs(env, query, limit), query)
 
     @mcp.tool()
-    def mesa_fetch_doc_page(path_or_url: str) -> str:
+    def mesa_docs_page(path_or_url: str) -> str:
         """Fetch the full text of one MESA documentation page. Accepts a local docs path
-        (e.g. 'reference/star_job', 'test_suite', with or without .rst) resolved under
-        $MESA_DIR/docs/source, or an absolute http(s) URL. Returns readable plain text.
-        Pair with mesa_search_docs to read a promising result in full."""
+        (e.g. 'reference/star_job', 'reference/binary_job', 'test_suite', with or without .rst)
+        resolved under $MESA_DIR/docs/source, or an absolute http(s) URL. Returns readable plain
+        text. Pair with mesa_docs_search to read a promising result in full."""
         env = build_env_context()
         target = path_or_url.strip()
 
@@ -169,41 +174,42 @@ def register(mcp) -> None:
             return f"Could not resolve '{path_or_url}' locally or via network ({url}): {e}"
 
     @mcp.tool()
-    def mesa_fetch_test_suite_index() -> str:
-        """List the MESA test-suite cases (verified example setups) grouped by module
-        (star/binary/astero). Local-first from $MESA_DIR; network fallback parses the
-        docs. Pass a name to mesa_fetch_test_suite_details to get that case's inlists."""
-        return _format_index(test_suite.index(build_env_context()))
-
-    @mcp.tool()
-    def mesa_fetch_test_suite_details(test_name: str) -> str:
-        """Return a test-suite case's description and its real inlist configurations — the
-        verified baseline to copy into a new sibling work folder. Local-first: reads the
-        actual case directory's README and inlist_* files; the network fallback returns
-        the description only (real inlists exist only in a local install).
+    def mesa_docs_testsuite(case: str = "") -> str:
+        """Browse the MESA test suite (verified example setups). With no `case`, lists all cases
+        grouped by module (star/binary/astero). With a `case` name, returns that case's description
+        and its real inlist configurations — the verified baseline to copy into a new work folder
+        (via mesa_work_create). Local-first from $MESA_DIR; network fallback for the index +
+        descriptions (real inlists exist only in a local install).
 
         Args:
-            test_name: the case name from mesa_fetch_test_suite_index (e.g. '1M_pre_ms_to_wd').
+            case: a case name (e.g. '1M_pre_ms_to_wd'); empty lists the whole index.
         """
-        return _format_details(test_suite.details(build_env_context(), test_name.strip()))
+        env = build_env_context()
+        case = case.strip()
+        if not case:
+            return _format_index(test_suite.index(env))
+        return _format_details(test_suite.details(env, case))
 
     @mcp.tool()
-    def mesa_serve_docs(port: int = 8000, rebuild: bool = False) -> str:
-        """Serve the installed MESA documentation as a local website (detached) and return the URL.
+    def mesa_docs_serve(action: str = "start", port: int = 8000, rebuild: bool = False) -> str:
+        """Serve the installed MESA documentation as a local website (detached), or stop it.
 
-        The install ships only Sphinx `.rst` source, so by default this serves an existing built
-        HTML tree if present, otherwise the raw source. Pass `rebuild=True` to build browsable HTML
-        with `sphinx-build` first (best-effort; needs the docs' Sphinx requirements and can take a
-        few minutes). The server runs in the background; stop it with `mesa_stop_docs`. For quick
-        lookups prefer `mesa_search_docs` / `mesa_fetch_doc_page` (no server needed).
+        - `action="start"` (default): serve the docs and return the URL. The install ships only
+          Sphinx `.rst` source, so by default this serves an existing built HTML tree if present,
+          else the raw source. Pass `rebuild=True` to build browsable HTML with `sphinx-build` first
+          (best-effort; needs the docs' Sphinx requirements and can take a few minutes).
+        - `action="stop"`: stop the running docs server.
+
+        For quick lookups prefer mesa_docs_search / mesa_docs_page (no server needed).
 
         Args:
-            port: preferred local port (an open port is chosen if it's taken).
-            rebuild: build HTML with sphinx-build before serving.
+            action: "start" or "stop".
+            port: (start) preferred local port (an open port is chosen if it's taken).
+            rebuild: (start) build HTML with sphinx-build before serving.
         """
-        return json.dumps(docs_server.serve_docs(build_env_context(), port, rebuild), indent=2)
-
-    @mcp.tool()
-    def mesa_stop_docs() -> str:
-        """Stop the local MESA documentation server started by `mesa_serve_docs`."""
-        return json.dumps(docs_server.stop_docs(), indent=2)
+        act = action.strip().lower()
+        if act == "stop":
+            return json.dumps(docs_server.stop_docs(), indent=2)
+        if act == "start":
+            return json.dumps(docs_server.serve_docs(build_env_context(), port, rebuild), indent=2)
+        return json.dumps({"error": f"Unknown action '{action}'. Use 'start' or 'stop'."}, indent=2)

@@ -2,8 +2,8 @@
 
 Copies a baseline — the standard ``star``/``binary`` work template, or a verified
 test-suite case — into a sibling workspace directory, excluding run outputs (LOGS, photos,
-caches). The agent then edits the inlists (verifying controls with ``mesa_get_option``) and
-compiles/runs via ``mesa_execute_shell``. Nothing is ever written inside ``$MESA_DIR``.
+caches). The agent then edits the inlists (verifying controls with ``mesa_docs_option``) and
+compiles/runs via ``mesa_env_shell``. Nothing is ever written inside ``$MESA_DIR``.
 """
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ def resolve_baseline(env: dict, baseline: str):
         if os.path.isdir(src):
             return src, module
     return None, (f"Unknown baseline '{baseline}'. Use 'work', 'binary', or a test-suite case "
-                  "name from mesa_fetch_test_suite_index.")
+                  "name from mesa_docs_testsuite.")
 
 
 def create_workspace(env: dict, name: str, baseline: str = "work", dest: str = "") -> dict:

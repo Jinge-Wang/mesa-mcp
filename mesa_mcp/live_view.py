@@ -97,12 +97,12 @@ def launch(env: dict, workspace: str, interval: float = 2.0) -> dict:
     if not cap["can_open_window"]:
         return {"error": "No on-screen display available — cannot open a live window.",
                 "capability": cap,
-                "hint": "Use mesa_enable_pgstar_file_output + mesa_latest_plot to view plots headless."}
+                "hint": "Use mesa_plot_pgstar + mesa_plot_view to view plots headless."}
 
     state = _read_state(ws)
     if state and _pid_alive(state.get("pid", -1)):
         return {"error": f"A live view is already open here (pid {state['pid']}). "
-                         "Close its window or call mesa_close_live_view first."}
+                         "Close its window or call mesa_plot_live first."}
 
     full_env = dict(os.environ)
     full_env.update(env or {})
@@ -122,7 +122,7 @@ def launch(env: dict, workspace: str, interval: float = 2.0) -> dict:
     return {"launched": True, "pid": proc.pid, "workspace": ws,
             "backend": cap["recommended_backend"], "interval": interval,
             "note": "A separate window opened on your desktop; it refreshes as new plots appear. "
-                    "Close the window (or mesa_close_live_view) to stop it."}
+                    "Close the window (or mesa_plot_live) to stop it."}
 
 
 def stop_live_view(workspace: str) -> dict:

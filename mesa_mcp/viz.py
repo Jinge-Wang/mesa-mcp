@@ -12,7 +12,7 @@ import glob
 import os
 import re
 
-from . import inlist
+from . import inlist, inlist_resolver
 
 _IMG_EXTS = (".png", ".svg", ".jpg", ".jpeg", ".gif")
 # Don't recurse into these (run state, build, source, committed reference images).
@@ -55,71 +55,101 @@ def latest_plot(workspace: str) -> dict:
         return res
     if not res["plots"]:
         return {"error": ("No plot images found. Enable PGSTAR file output "
-                          "(mesa_enable_pgstar_file_output) and run the simulation first.")}
+                          "(mesa_plot_pgstar) and run the simulation first.")}
     return {"latest": res["plots"][0], "total": res["count"]}
+
+
+def _read_lines(path: str) -> list:
+    try:
+        return open(path, "r", encoding="utf-8", errors="replace").read().splitlines()
+    except OSError:
+        return []
+
+
+def _file_with_namelist(files: list, namelist: str) -> "str | None":
+    for f in files:
+        if inlist._find_namelist(_read_lines(f), namelist):
+            return f
+    return None
+
+
+def _enable_namelist(env, files, plot_nl, flag_nl, flag_name, plot_filter, out_dir, interval, changes):
+    """Enable file output for one plotting namelist (``pgstar`` or ``pgbinary``).
+
+    Sets the master ``flag_name`` in ``&flag_nl`` (e.g. ``pgstar_flag`` in ``&star_job``) and, for
+    each window plot (``<plot>_win_flag``) or each name in ``plot_filter``, the matching
+    ``<plot>_file_flag``/``_file_dir``/``_file_interval`` in ``&plot_nl``. Returns a summary or None
+    if this workspace has no ``&plot_nl`` namelist.
+    """
+    win_by_file: dict = {}
+    declared = []
+    for f in files:
+        lines = _read_lines(f)
+        if inlist._find_namelist(lines, plot_nl):
+            declared.append(f)
+        for s in inlist.read_settings(f):
+            m = _WIN_FLAG_RE.match(s["name"])
+            if m and s["namelist"] == plot_nl:
+                win_by_file.setdefault(f, []).append(m.group("plot"))
+    if not declared:
+        return None
+
+    target = (max(win_by_file, key=lambda f: len(win_by_file[f])) if win_by_file else declared[0])
+    plot_list = plot_filter or list(dict.fromkeys(win_by_file.get(target, [])))
+    summary = {"namelist": plot_nl, "file": os.path.basename(target),
+               "plots": list(plot_list)}
+    if not plot_list:
+        summary["note"] = (f"no {plot_nl} window plots (*_win_flag) found to convert; "
+                           "pass plots='Grid1' (or whichever this inlist defines).")
+        return summary
+
+    def _apply(path, name, value, nl):
+        r = inlist.set_option(env, path, name, value, nl)
+        changes.append({"file": os.path.basename(path), "control": name,
+                        "result": r.get("action") or r.get("error")})
+
+    flag_file = _file_with_namelist(files, flag_nl)
+    if flag_file:
+        _apply(flag_file, flag_name, ".true.", flag_nl)
+    for plot in dict.fromkeys(plot_list):
+        _apply(target, f"{plot}_file_flag", ".true.", plot_nl)
+        _apply(target, f"{plot}_file_dir", f"'{out_dir}'", plot_nl)
+        _apply(target, f"{plot}_file_interval", str(interval), plot_nl)
+    return summary
 
 
 def enable_file_output(env: dict, workspace: str, plots: str = "", out_dir: str = "png",
                        interval: int = 10) -> dict:
-    """Turn on PGSTAR file output in a workspace's inlists.
+    """Turn on headless plot **file** output in a workspace's inlists.
 
-    Sets ``pgstar_flag`` in the &star_job inlist and, for each plot, ``<plot>_file_flag`` /
-    ``<plot>_file_dir`` / ``<plot>_file_interval`` in the &pgstar inlist. If ``plots`` is empty,
-    auto-detects the plots already defined as windows (``<plot>_win_flag``).
+    Enables ``&pgstar`` (``pgstar_flag`` in ``&star_job``) and, for a **binary** run, also
+    ``&pgbinary`` (``pgbinary_flag`` in ``&binary_job``). For each plot defined as a window
+    (``<plot>_win_flag``) — or each name in ``plots`` — it sets ``<plot>_file_flag`` /
+    ``<plot>_file_dir`` / ``<plot>_file_interval``.
     """
     ws = os.path.abspath(os.path.expanduser(workspace))
     if not os.path.isdir(ws):
         return {"error": f"Workspace not found: {ws}"}
     files = [f for f in sorted(glob.glob(os.path.join(ws, "inlist*"))) if not f.endswith(".bak")]
+    if not files:
+        return {"error": "No inlist files in this workspace."}
 
-    star_job_file = None
-    pgstar_candidates = []
-    win_by_file: dict = {}
-    for f in files:
-        try:
-            lines = open(f, "r", encoding="utf-8", errors="replace").read().splitlines()
-        except OSError:
-            continue
-        if star_job_file is None and inlist._find_namelist(lines, "star_job"):
-            star_job_file = f
-        if inlist._find_namelist(lines, "pgstar"):
-            pgstar_candidates.append(f)
-        for s in inlist.read_settings(f):
-            m = _WIN_FLAG_RE.match(s["name"])
-            if m and s["namelist"] == "pgstar":
-                win_by_file.setdefault(f, []).append(m.group("plot"))
-    if not pgstar_candidates:
-        return {"error": "No inlist with a &pgstar namelist found in this workspace."}
+    try:
+        kind = inlist_resolver.layout(ws).get("kind")
+    except Exception:
+        kind = "star"
+    groups = [("pgstar", "star_job", "pgstar_flag")]
+    if kind == "binary":
+        groups.append(("pgbinary", "binary_job", "pgbinary_flag"))
 
-    # Prefer the file that actually defines the plot windows (e.g. inlist_pgstar).
-    pgstar_file = (max(win_by_file, key=lambda f: len(win_by_file[f]))
-                   if win_by_file else pgstar_candidates[0])
-
-    plot_list = [p for p in re.split(r"[,\s]+", plots.strip()) if p]
-    if not plot_list:
-        plot_list = list(win_by_file.get(pgstar_file, []))
-    if not plot_list:
-        return {"error": ("No plots specified and none defined as windows (*_win_flag). "
-                          "Pass plots='Grid1' (or whichever your inlist_pgstar defines).")}
-
-    changes = []
-
-    def _apply(path, name, value, nl):
-        r = inlist.set_option(env, path, name, value, nl)
-        changes.append({"control": name, "result": r.get("action") or r.get("error")})
-
-    if star_job_file:
-        _apply(star_job_file, "pgstar_flag", ".true.", "star_job")
-    for plot in dict.fromkeys(plot_list):  # dedupe, keep order
-        _apply(pgstar_file, f"{plot}_file_flag", ".true.", "pgstar")
-        _apply(pgstar_file, f"{plot}_file_dir", f"'{out_dir}'", "pgstar")
-        _apply(pgstar_file, f"{plot}_file_interval", str(interval), "pgstar")
-
-    return {
-        "workspace": ws,
-        "star_job_file": os.path.basename(star_job_file) if star_job_file else None,
-        "pgstar_file": os.path.basename(pgstar_file),
-        "plots": list(dict.fromkeys(plot_list)),
-        "out_dir": out_dir,
-        "changes": changes,
-    }
+    plot_filter = [p for p in re.split(r"[,\s]+", plots.strip()) if p]
+    changes: list = []
+    enabled = []
+    for plot_nl, flag_nl, flag_name in groups:
+        s = _enable_namelist(env, files, plot_nl, flag_nl, flag_name, plot_filter,
+                             out_dir, interval, changes)
+        if s:
+            enabled.append(s)
+    if not enabled:
+        return {"error": "No &pgstar (or &pgbinary) namelist found in this workspace."}
+    return {"workspace": ws, "kind": kind, "out_dir": out_dir, "enabled": enabled, "changes": changes}

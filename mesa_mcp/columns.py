@@ -11,7 +11,7 @@ import glob
 import os
 import re
 
-from . import config
+from . import config, inlist_resolver
 
 # A column line: optional leading '!', a name, then optional ' ! doc'.
 _COL_RE = re.compile(
@@ -84,12 +84,47 @@ def lookup(env: dict, name: str, kind: str = "history") -> dict:
     return {"exact": exact, "related": related, "kind": kind, "total": len(cols)}
 
 
+def _resolve_via_layout(workspace: str, sel: str) -> "str | None":
+    """Locate a history file using the *resolved* inlist layout (real log dir + history name).
+
+    ``sel``: '1'/'2' → that binary component; 'binary'/'b' → binary_history; else single-star.
+    Returns None if the layout can't be resolved or the file isn't there (caller falls back to globs).
+    """
+    try:
+        lay = inlist_resolver.layout(workspace)
+    except Exception:
+        return None
+
+    def _f(directory: str, name: str) -> "str | None":
+        cand = os.path.join(workspace, directory, name)
+        return cand if os.path.isfile(cand) else None
+
+    if sel in ("binary", "b"):
+        b = lay.get("binary")
+        return _f(b["log_directory"], b["history_name"]) if b else None
+    if sel in ("1", "2"):
+        st = (lay.get("stars") or {}).get(sel)
+        return _f(st["log_directory"], st["history_name"]) if st else None
+    st = lay.get("star") or (lay.get("stars") or {}).get("1")
+    return _f(st["log_directory"], st["history_name"]) if st else None
+
+
 def _resolve_history_file(path: str, star: str = "") -> "str | None":
-    """Resolve a history.data file. ``star`` selects a binary component: '1'/'2' →
-    LOGS1/LOGS2; 'binary' → binary_history.data; '' → single-star (LOGS/history.data)."""
+    """Resolve a history.data file. ``star`` selects a binary component: '1'/'2' → that star,
+    'binary' → binary_history.data; '' → single-star.
+
+    Prefers the *resolved* inlist layout (so a renamed ``log_directory``/``star_history_name`` or a
+    split inlist chain is honored), then falls back to the conventional locations + globs so it still
+    works when the inlists are absent or unparseable.
+    """
     if os.path.isfile(path):
         return path
     sel = str(star).strip().lower()
+
+    resolved = _resolve_via_layout(path, sel)
+    if resolved:
+        return resolved
+
     if sel in ("binary", "b"):
         for cand in (os.path.join(path, "binary_history.data"),
                      os.path.join(path, "LOGS", "binary_history.data")):

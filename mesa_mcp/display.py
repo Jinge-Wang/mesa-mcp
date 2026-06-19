@@ -3,7 +3,7 @@
 A MESA run's PGSTAR window (and our live viewer) needs a display. On macOS that's the native
 Quartz window server (matplotlib ``macosx`` backend, no X11 needed) or XQuartz; on Linux it's an
 X11/Wayland server (``$DISPLAY`` / ``$WAYLAND_DISPLAY``). This module reports the capability and a
-recommended interactive matplotlib backend, used by ``mesa_get_info`` and the live-view tool.
+recommended interactive matplotlib backend, used by ``mesa_env_info`` and the live-view tool.
 """
 from __future__ import annotations
 
@@ -86,4 +86,4 @@ def summary_line(env: "dict | None" = None) -> str:
     d = detect_display(env)
     if d["can_open_window"]:
         return f"on-screen window OK (backend {d['recommended_backend']}, display {d['display_env'] or 'native'})"
-    return "headless — no on-screen window; use PGSTAR file output / mesa_latest_plot"
+    return "headless — no on-screen window; use PGSTAR file output / mesa_plot_view"

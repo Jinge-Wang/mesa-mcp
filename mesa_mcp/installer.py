@@ -4,7 +4,7 @@
 The latest MESA release *and* the platform SDKs are published in the MESA Zenodo community
 (``type=software``), so both download links come from one REST query — no HTML scraping. The
 Townsend SDK page is kept only as a human reference. Actually downloading (~2 GB) and building is
-left to the user (or to ``mesa_execute_shell`` with explicit consent); these tools provide the plan
+left to the user (or to ``mesa_env_shell`` with explicit consent); these tools provide the plan
 and write the shell helper.
 """
 from __future__ import annotations
@@ -258,9 +258,9 @@ def installation_plan(env: dict, timeout: int = 20) -> dict:
         "steps": [
             "1. Install the MESA SDK for your platform (recommended_sdk.download_url), then the build deps.",
             "2. Download + unpack the MESA release (latest_release.download_url) to a path WITHOUT spaces.",
-            "3. Add a load_mesa shell function with mesa_install_set_env (sets MESA_DIR/MESASDK_ROOT, "
+            "3. Add a load_mesa shell function with mesa_env_install (sets MESA_DIR/MESASDK_ROOT, "
             "sources mesasdk_init.sh, OMP_NUM_THREADS, PATH, PS1).",
             "4. Open a new shell, run `load_mesa`, then `./install` inside $MESA_DIR (this can take a while).",
-            "5. Verify with mesa_get_info.",
+            "5. Verify with mesa_env_info.",
         ],
     }

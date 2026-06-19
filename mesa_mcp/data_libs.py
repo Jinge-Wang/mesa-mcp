@@ -4,7 +4,7 @@ A small, bounded surface: ``list_libraries`` enumerates the ``*_data`` subdirs w
 descriptions, and ``load_data`` dispatches to internal parsers for the high-value, human-readable
 ones — nuclear networks (``.net``), solar-abundance patterns (Lodders), and the isotope table —
 falling back to a plain file listing for the rest. Heavy binary tables (EOS/opacity) are listed,
-not parsed. Nuclear *rates* have their own tool (mesa_get_reaction_rate).
+not parsed. Nuclear *rates* have their own tool (mesa_data_rate).
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ _LIBRARIES = {
     "ionization_data": "Ionization-state tables.",
     "kap_data": "Radiative + conductive opacity tables.",
     "net_data": "Nuclear reaction networks (.net): which isotopes + reactions each network includes.",
-    "rates_data": "Reaction-rate data (JINA REACLIB, weak rates) — query via mesa_get_reaction_rate.",
+    "rates_data": "Reaction-rate data (JINA REACLIB, weak rates) — query via mesa_data_rate.",
     "roche_data": "Roche-lobe geometry tables (binary).",
     "star_data": "Miscellaneous star-module support data.",
 }
@@ -62,7 +62,7 @@ def list_libraries(env: dict) -> dict:
                      "files": n_files})
     return {"data_dir": data_dir, "libraries": libs,
             "loadable": ["net", "solar", "isotope", "colors"],
-            "note": "Use mesa_load_data(library, name) — 'net' (networks), 'solar' (abundances), "
+            "note": "Use mesa_data_library(library, name) — 'net' (networks), 'solar' (abundances), "
                     "'isotope' (one isotope's properties), 'colors' (filters/models) have dedicated "
                     "parsers; any other data subdir returns a structured inventory."}
 
@@ -138,7 +138,7 @@ def _load_net(data_dir: str, name: str) -> dict:
         files = sorted(os.path.basename(f)[:-4]
                        for f in glob.glob(os.path.join(nets, "*.net")))
         return {"library": "net", "available_networks": files, "count": len(files),
-                "note": "Call mesa_load_data('net', '<network>') to list its isotopes + reactions."}
+                "note": "Call mesa_data_library('net', '<network>') to list its isotopes + reactions."}
     parsed = _parse_net(nets, name)
     if parsed.get("error"):
         return parsed
@@ -187,7 +187,7 @@ def _load_isotope(data_dir: str, name: str) -> dict:
     if not os.path.isfile(path):
         return {"error": "chem_data/isotopes.data not found."}
     if not name:
-        return {"error": "Pass an isotope name, e.g. mesa_load_data('isotope', 'c12')."}
+        return {"error": "Pass an isotope name, e.g. mesa_data_library('isotope', 'c12')."}
     target = name.strip().lower()
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         lines = f.read().splitlines()
@@ -246,7 +246,7 @@ def _inventory(sub: str) -> dict:
         "table_families": [{"family": f, "count": c} for f, c in families],
         "sample_files": files[:15],
         "note": "Structured inventory (no numeric parser for this library — EOS/opacity/atm tables "
-                "are large binary-ish grids). Use mesa_fetch_doc_page for the module's docs.",
+                "are large binary-ish grids). Use mesa_docs_page for the module's docs.",
     }
 
 
@@ -276,7 +276,7 @@ def _load_colors(data_dir: str, name: str) -> dict:
         return {"library": "colors",
                 "filter_surveys": {s: len(b) for s, b in surveys.items()},
                 "stellar_models": models,
-                "note": "mesa_load_data('colors','filters') lists every band; "
+                "note": "mesa_data_library('colors','filters') lists every band; "
                         "('colors','models') lists the stellar-model grids."}
 
     if key in ("models", "stellar_models"):
@@ -304,4 +304,4 @@ def load_data(env: dict, library: str, name: str = "") -> dict:
     sub = os.path.join(data_dir, library if library.endswith("_data") else library + "_data")
     if os.path.isdir(sub):
         return _inventory(sub)
-    return {"error": f"Unknown library '{library}'. Use mesa_list_data_libraries to discover them."}
+    return {"error": f"Unknown library '{library}'. Use mesa_data_library to discover them."}

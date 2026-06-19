@@ -16,7 +16,7 @@ import signal
 import subprocess
 import time
 
-from . import columns, config
+from . import columns, config, inlist_resolver
 from .environment import _candidate_shells
 
 LOG_NAME = "mesa_run.log"
@@ -94,28 +94,44 @@ def _tail(path: str, n: int = 25, maxbytes: int = 65536) -> list:
     return data.splitlines()[-n:]
 
 
-def _models_written(ws: str) -> "int | None":
+def _models_for(ws: str, star: str = "") -> "int | None":
     try:
-        res = columns.read_history({}, ws, last_n=1)
+        res = columns.read_history({}, ws, last_n=1, star=star)
         return res.get("total_models") if "error" not in res else None
     except Exception:
         return None
 
 
+def _output_dirs(ws: str) -> set:
+    """The run-output directories this workspace actually uses (resolved log/photo dirs for every
+    component) unioned with the conventional ``LOGS*``/``photos*``/``png`` globs."""
+    dirs = set()
+    try:
+        lay = inlist_resolver.layout(ws)
+        comps = list(lay["stars"].values()) if lay.get("kind") == "binary" else (
+            [lay["star"]] if lay.get("star") else [])
+        for c in comps:
+            dirs.update((c.get("log_directory"), c.get("photo_directory")))
+        if lay.get("kind") == "binary":
+            dirs.add(lay["binary"].get("log_directory"))
+    except Exception:
+        pass
+    for pattern in ("LOGS*", "photos*", "png"):
+        for p in glob.glob(os.path.join(ws, pattern)):
+            dirs.add(os.path.relpath(p, ws))
+    return {d for d in dirs if d and d not in (".", "")}
+
+
 def _existing_artifacts(ws: str) -> list:
-    """Describe prior run output in ``ws`` (LOGS*/, photos*/, png/) — used to guard fresh runs."""
+    """Describe prior run output in ``ws`` (resolved log/photo dirs + LOGS*/photos*/png) — used to
+    guard a fresh run from overwriting it."""
     found = []
-    for logs in sorted(glob.glob(os.path.join(ws, "LOGS*"))):
-        if os.path.isdir(logs):
-            n = len(os.listdir(logs))
+    for d in sorted(_output_dirs(ws)):
+        full = os.path.join(ws, d)
+        if os.path.isdir(full):
+            n = len(os.listdir(full))
             if n:
-                found.append(f"{os.path.basename(logs)}/ ({n} files)")
-    for name in ("photos", "photos1", "photos2", "png"):
-        p = os.path.join(ws, name)
-        if os.path.isdir(p):
-            n = len(os.listdir(p))
-            if n:
-                found.append(f"{name}/ ({n} files)")
+                found.append(f"{d}/ ({n} files)")
     return found
 
 
@@ -153,7 +169,7 @@ def start_run(env: dict, workspace: str, command: str = "./rn",
                 "command": command,
                 "existing": existing,
                 "note": ("This workspace already has run output. A fresh `./rn` will run over it. "
-                         "Decide WITH THE USER: clean first (mesa_clear_workspace, confirm-gated) "
+                         "Decide WITH THE USER: clean first (mesa_work_clear, confirm-gated) "
                          "then re-run, or proceed as-is by re-calling with on_existing='continue'. "
                          "Do NOT clean if this is a later phase of a multi-phase run — it reuses "
                          "models saved by earlier phases (use `./re`/`./rn` without cleaning)."),
@@ -211,9 +227,21 @@ def run_status(workspace: str, verbose: bool = False, tail: int = 25) -> dict:
         "command": state.get("command"),
         "elapsed_s": round(time.time() - state.get("started", time.time()), 1),
         "log": log_path,
-        "models_written": _models_written(ws),
+        "models_written": _models_for(ws),
         "latest_model": columns.latest_model({}, ws),
     }
+    # For a binary run, also surface each component and the orbital (binary_history) state, since
+    # the single-star fields above only reflect one component's LOGS.
+    try:
+        is_binary = inlist_resolver.layout(ws).get("kind") == "binary"
+    except Exception:
+        is_binary = False
+    if is_binary:
+        out["binary"] = {
+            "star1_models": _models_for(ws, "1"),
+            "star2_models": _models_for(ws, "2"),
+            "binary_latest_model": columns.latest_model({}, ws, star="binary"),
+        }
     if verbose or (code not in (None, 0)):
         out["tail"] = _tail(log_path, tail)
     return out

@@ -15,10 +15,14 @@ from __future__ import annotations
 import glob
 import os
 
-from . import columns
+from . import columns, inlist_resolver
 
 # Isotopes drawn by the abundance preset, in rough nucleosynthesis order, when present.
 _ABUND_ISOS = ["h1", "he3", "he4", "c12", "n14", "o16", "ne20", "mg24", "si28", "fe56"]
+# binary_history columns for the orbital preset (orbit panel, then mass-transfer/RLOF panel).
+_BINARY_ORBIT = ["period_days", "binary_separation", "eccentricity"]
+_BINARY_MT = ["lg_mtransfer_rate", "lg_mstar_dot_1", "lg_mstar_dot_2",
+              "rl_relative_overflow_1", "rl_relative_overflow_2"]
 
 
 def _plots_dir(ws: str) -> str:
@@ -38,10 +42,28 @@ def _pyplot():
 def _resolve_profile(ws: str, profile_number: int = 0, star: str = "") -> "str | None":
     """Resolve a profile.data path in a workspace (latest by profile number if 0).
 
-    ``star`` ('1'/'2') restricts to a binary component's LOGS1/LOGS2; '' = any LOGS*."""
-    logs = f"LOGS{star}" if str(star).strip() in ("1", "2") else "LOGS*"
-    cands = sorted(glob.glob(os.path.join(ws, logs, "profile*.data"))
-                   + glob.glob(os.path.join(ws, "profile*.data")))
+    ``star`` ('1'/'2') restricts to a binary component; the log directory is taken from the resolved
+    inlist layout (real ``log_directory``), with ``LOGS{star}``/``LOGS*`` as fallback."""
+    sel = str(star).strip()
+    patterns = []
+    try:
+        lay = inlist_resolver.layout(ws)
+        if sel in ("1", "2") and lay.get("kind") == "binary":
+            st = (lay.get("stars") or {}).get(sel)
+        else:
+            st = lay.get("star") or (lay.get("stars") or {}).get("1")
+        if st and st.get("log_directory"):
+            patterns.append(os.path.join(ws, st["log_directory"], "profile*.data"))
+    except Exception:
+        pass
+    logs = f"LOGS{sel}" if sel in ("1", "2") else "LOGS*"
+    patterns += [os.path.join(ws, logs, "profile*.data"), os.path.join(ws, "profile*.data")]
+    seen, cands = set(), []
+    for pat in patterns:
+        for c in sorted(glob.glob(pat)):
+            if c not in seen:
+                seen.add(c)
+                cands.append(c)
     if not cands:
         return None
     if profile_number:
@@ -98,11 +120,46 @@ def _plot_kippenhahn(ws: str, md, xcol: str) -> dict:
             "convective_regions": drew, "n_points": int(len(x))}
 
 
+def _plot_binary(ws: str, md, xcol: str) -> dict:
+    """Orbital evolution of a binary from ``binary_history.data``: an orbit panel (period /
+    separation) and a mass-transfer panel (transfer rate / RLOF), whichever columns are present."""
+    plt = _pyplot()
+    xname = xcol if md.in_data(xcol) else ("age" if md.in_data("age") else
+                                           "model_number" if md.in_data("model_number") else None)
+    if xname is None:
+        return {"error": "binary_history.data has no 'age'/'model_number' column to plot against."}
+    orbit = [c for c in _BINARY_ORBIT if md.in_data(c)]
+    mt = [c for c in _BINARY_MT if md.in_data(c)]
+    if not orbit and not mt:
+        return {"error": ("No binary orbital columns (period_days, binary_separation, "
+                          "lg_mtransfer_rate, rl_relative_overflow_*) found — is this "
+                          "binary_history.data? (star='binary'). For a component's HR use star='1'/'2'.")}
+    x = md.data(xname)
+    panels = [p for p in (orbit, mt) if p]
+    fig, axes = plt.subplots(len(panels), 1, figsize=(7, 3.2 * len(panels)), sharex=True, squeeze=False)
+    drew = []
+    for ax, group in zip((a[0] for a in axes), panels):
+        for c in group:
+            ax.plot(x, md.data(c), lw=1.2, label=c)
+            drew.append(c)
+        ax.set_ylabel("orbit" if group is orbit else "mass transfer / RLOF")
+        ax.legend(fontsize=8, ncol=2)
+        ax.grid(alpha=0.3)
+    axes[0][0].set_title("Binary orbital evolution")
+    axes[-1][0].set_xlabel(xname)
+    fig.tight_layout()
+    out = os.path.join(_plots_dir(ws), "binary.png")
+    fig.savefig(out, dpi=120)
+    plt.close(fig)
+    return {"path": out, "preset": "binary", "x": xname, "columns": drew, "n_points": int(len(x))}
+
+
 def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "log_L",
                  preset: str = "", logx: bool = False, logy: bool = False, star: str = "") -> dict:
     """Plot one or more history columns (``y`` may be comma-separated) versus ``x``.
 
-    ``star`` selects a binary component ('1'/'2'/'binary'); '' = single-star."""
+    ``star`` selects a binary component ('1'/'2'/'binary'); '' = single-star. With ``star='binary'``
+    the data is ``binary_history.data`` (orbital columns); the default view is the ``binary`` preset."""
     ws = os.path.abspath(os.path.expanduser(workspace))
     if not os.path.isdir(ws):
         return {"error": f"Workspace not found: {ws}"}
@@ -111,7 +168,18 @@ def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "l
     except RuntimeError as e:
         return {"error": str(e)}
 
-    if preset.lower() == "kippenhahn":
+    sel = str(star).strip().lower()
+    pre = preset.lower()
+    # binary_history is orbital, not stellar: route to the binary preset and block stellar presets.
+    if pre in ("binary", "orbit") or (sel in ("binary", "b") and not preset and y in ("log_L", "")):
+        xc = x if (x and x != "model_number" and md.in_data(x)) else ("age" if md.in_data("age") else "model_number")
+        return _plot_binary(ws, md, xc)
+    if sel in ("binary", "b") and pre in ("hr", "kippenhahn", "abundance"):
+        return {"error": (f"The '{preset}' preset needs stellar columns that binary_history.data "
+                          "doesn't have. Use preset='binary' (orbital), or star='1'/'2' for a "
+                          "component's stellar plot.")}
+
+    if pre == "kippenhahn":
         xc = x if (x and x != "model_number") else ("star_age" if md.in_data("star_age") else "model_number")
         return _plot_kippenhahn(ws, md, xc)
 
@@ -123,7 +191,7 @@ def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "l
 
     ys = [c.strip() for c in y.split(",") if c.strip()]
     if not md.in_data(x):
-        return {"error": f"Column '{x}' not in history.data.", "available_hint": "use mesa_get_output_column"}
+        return {"error": f"Column '{x}' not in history.data.", "available_hint": "use mesa_data_column"}
     missing = [c for c in ys if not md.in_data(c)]
     ys = [c for c in ys if md.in_data(c)]
     if not ys:

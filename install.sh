@@ -30,8 +30,24 @@ confirm() {
   case "$reply" in [nN]*) return 1;; *) return 0;; esac
 }
 
-# 1. uv
-command -v uv >/dev/null 2>&1 || die "uv not found. Install it from https://docs.astral.sh/uv/ and re-run."
+# 1. uv (Python package/venv manager used to run the server)
+if ! command -v uv >/dev/null 2>&1; then
+  warn "uv is not installed. It manages this server's Python environment."
+  cat <<'UVHELP'
+
+  Install uv, then re-run ./install.sh. Official guide:
+    https://docs.astral.sh/uv/getting-started/installation/
+
+  macOS / Linux (standalone installer):
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  macOS (Homebrew):
+    brew install uv
+
+  (After installing, open a new shell or `source` your profile so `uv` is on PATH.)
+UVHELP
+  die "uv is required — install it (see above) and re-run."
+fi
 info "Using uv: $(command -v uv)"
 
 # 2. dependencies
@@ -120,5 +136,5 @@ $(info "Setup complete. Next steps:")
   
   Finally:
   1. Restart your client (relaunch the CLI, or use Cmd/Ctrl+Shift+P -> "Developer: Reload Window" in VS Code).
-  2. Ask the AI: "Please call the mesa_get_info tool to confirm your toolchain is working."
+  2. Ask the AI: "Please call the mesa_env_info tool to confirm your toolchain is working."
 NEXT

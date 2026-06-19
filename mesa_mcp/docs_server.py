@@ -107,7 +107,7 @@ def serve_docs(env: dict, port: int = 8000, rebuild: bool = False) -> dict:
     state = _read_state()
     if state and _pid_alive(state.get("pid", -1)):
         return {"error": f"A docs server is already running (pid {state['pid']}) at {state['url']}. "
-                         "Stop it with mesa_stop_docs first."}
+                         "Stop it with mesa_docs_serve first."}
 
     ver = version.describe_version(env).get("docs_version", "latest")
     cache_html = os.path.join(config.cache_dir(), "mesa_docs_html", ver)

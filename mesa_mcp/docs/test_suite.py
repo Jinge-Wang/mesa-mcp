@@ -57,7 +57,7 @@ def index(env: dict) -> dict:
             "docs_version": version.docs_version(env),
             "counts": {m: len(c) for m, c in modules.items()},
             "modules": modules,
-            "hint": "Use mesa_fetch_test_suite_details(name) for a case's description and inlists.",
+            "hint": "Use mesa_docs_testsuite(name) for a case's description and inlists.",
         }
     return _network_index(env)
 
@@ -114,7 +114,7 @@ def _local_details(env, module, case_dir, test_name, max_inlists, per_inlist_cha
         "inlists": inlists,
         "auxiliary_files": aux,
         "note": ("Some inlists were truncated or omitted; read a full file by path with "
-                 "mesa_fetch_doc_page if needed." if truncated else ""),
+                 "mesa_docs_page if needed." if truncated else ""),
     }
 
 

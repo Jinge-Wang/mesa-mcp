@@ -3,7 +3,7 @@
 Files such as ``$MESA_DIR/star/defaults/controls.defaults`` are the authoritative source
 for every inlist control: its namelist, default value, and documentation. They live in the
 code (not just the docs tree), so they are available even when ``docs/`` is absent. Used by
-the ``mesa_get_option`` lookup tool and to give ``mesa_search_docs`` per-option granularity.
+the ``mesa_docs_option`` lookup tool and to give ``mesa_docs_search`` per-option granularity.
 
 Format of one option in a .defaults file::
 

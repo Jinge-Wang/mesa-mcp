@@ -22,7 +22,7 @@ DEFAULT_DOCS_VERSION = "latest"
 # --- timeouts (seconds) ---
 ENV_PROBE_TIMEOUT = 10      # sourcing the shell profile + load_mesa
 COMMAND_TIMEOUT = 5         # quick info probes (uname, gfortran -v, ...)
-DEFAULT_SHELL_TIMEOUT = 300  # mesa_execute_shell default; bounded (async runs are Phase 5)
+DEFAULT_SHELL_TIMEOUT = 300  # mesa_env_shell default; bounded (async runs are Phase 5)
 HTTP_TIMEOUT = 20.0         # network fallback fetches
 
 
