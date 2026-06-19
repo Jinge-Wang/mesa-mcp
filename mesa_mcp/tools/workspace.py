@@ -1,7 +1,7 @@
 """FastMCP tools: provision and list MESA work folders (outside the MESA install)."""
 from __future__ import annotations
 
-from .. import workspace
+from .. import cleanup, workspace
 from ..environment import build_env_context
 
 
@@ -34,6 +34,26 @@ def _format_list(res: dict) -> str:
     return "\n".join(lines)
 
 
+def _format_clean(res: dict) -> str:
+    if res.get("error"):
+        return f"Cannot clean: {res['error']}"
+    if res.get("dry_run"):
+        lines = [f"DRY RUN — would remove from {res['workspace']} (nothing deleted yet):"]
+        for it in res["would_remove"]:
+            kind = "dir " if it["is_dir"] else "file"
+            lines.append(f"  [{kind}] {it['path']}  ({it['size']})")
+        lines += ["", res["note"]]
+        return "\n".join(lines)
+    if not res.get("cleaned"):
+        return res.get("note", "Nothing to clean.")
+    lines = [f"Removed {len(res['removed'])} item(s) from {res['workspace']}:"]
+    lines += [f"  - {p}" for p in res["removed"]]
+    if res.get("errors"):
+        lines.append("Errors:")
+        lines += [f"  ! {e}" for e in res["errors"]]
+    return "\n".join(lines)
+
+
 def register(mcp) -> None:
     @mcp.tool()
     def mesa_create_workspace(name: str, baseline: str = "work", dest: str = "") -> str:
@@ -62,3 +82,20 @@ def register(mcp) -> None:
         """List the MESA work folders already provisioned under the workspace root, with their
         inlists and whether each has run output (LOGS)."""
         return _format_list(workspace.list_workspaces())
+
+    @mcp.tool()
+    def mesa_clean_workspace(workspace: str, confirm: bool = False) -> str:
+        """Reset a workspace by removing only its run *output* — LOGS/, photos/, png/, top-level
+        PGSTAR PNGs, and the detached-run state files. Inlists, src/, run_star_extras.f90, and
+        make/ are left untouched, and paths inside the MESA install are refused.
+
+        **Two-step + user confirmation.** Call with confirm=False first (default): it lists exactly
+        what would be deleted and removes nothing. Get the user's go-ahead, then call again with
+        confirm=True to delete. **Do NOT clean between phases of a multi-phase run** — later phases
+        load models/photos that earlier phases saved.
+
+        Args:
+            workspace: the work-folder path (outside the MESA tree).
+            confirm: must be True to actually delete; False performs a dry run.
+        """
+        return _format_clean(cleanup.clean_workspace(build_env_context(), workspace, confirm))

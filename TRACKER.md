@@ -17,26 +17,21 @@ and output was inconsistent/bloated across hosts.
 | **Phase 6** | **Async, non-blocking runs & monitoring**: `mesa_run` (detached `./rn`/`./re` + PID + `mesa_run.log` + exit marker; Popen kept referenced), `mesa_run_status` (state, models written, tail), `mesa_stop_run` (process-group kill). Fixes the CLI hang and gives consistent bounded progress. | 4–5 | ✅ Complete |
 | **Phase 7** | **Visualization**: `mesa_enable_pgstar_file_output` (auto-detects `*_win_flag` plots → file output), `mesa_latest_plot` (inline image) + `mesa_list_plots`; `PGSTAR_DISPLAY` diagnostic in get_mesa_info. The on-screen PGSTAR window can't open headless/in VS Code. | 3–4 | ✅ Complete |
 | **Phase 8** | **Multi-platform marketplace & install**: `PLATFORMS.md` (support matrix + per-host setup); populated `gemini` + `antigravity` entries (MCP configs + READMEs) + portable `marketplace/mesa-agent.md` guidance; Gemini-CLI-obsolete note (→ Antigravity); `install.sh` writes all configs + prints per-host commands; anonymized example chat histories in `docs/`. (cursor/codex/copilot remain stubs.) | 4–6 | ✅ Complete |
-| **Phase 9** | (1) Agent-driven **live auto-updating visualization window** for a running sim (re-render the newest PGSTAR file, or a watch-and-display loop; verify no conflict with MESA's own PGSTAR; detect X11/XQuartz on macOS + Linux). (2) **MESA installation toolset** (install this MCP first, then have the agent install MESA): detect OS/arch; fetch the latest MESA release + its Zenodo download; fetch the matching MESA SDK (Townsend page); guide install; with permission add a `load_mesa` function to the user's shell rc instead of raw global exports; server records that `load_mesa` exists. | TBD | 🔮 Planned |
-| **Phase 2 remainder** | Marketplace add-ons; optional `mesa_serve_docs`. | 2–3 | ⬜ Not started |
+| **Phase 9** | **Reliability & safety quick-wins** (from Antigravity testing): (9.1) `mesa_run_status` returns **JSON** — top-level state + `latest_model` (the last history.data row as aligned column→value), no raw line-wrapped terminal grid (raw tail only on `verbose` or non-zero exit). (9.2) `mesa_run` **guards a fresh `./rn`** when `LOGS/`/`photos/` already exist — refuses + lists them (`on_existing="continue"` to override), never auto-cleans, always proceeds for `./re`. (9.3) `mesa_clean_workspace` — confirmation-gated reset of run output only (LOGS*/photos*/png + run state), refuses inside `$MESA_DIR`. (9.4) skill guardrails: ask-before-clean, multi-phase = never clean between phases. | 3–4 | ✅ Complete |
+| **Phase 10** | **Data libraries & rates toolset** (+ scientific deps): adopt `numpy`+`matplotlib`+`mesa_reader` as the canonical history/profile loader (propose `uv add`, don't run). `mesa_get_reaction_rate` (parse `data/rates_data` REACLIB + weak rates → fit params, citation, evaluation at T). `mesa_list_data_libraries`/`mesa_load_data` (internal parsers for common `$MESA_DIR/data/` libs). Candidate: `mesa_set_rate_factor` wrapper hiding `special_rate_factor`/`reaction_for_special_factor` array syntax (build here if thin; else → Phase 13). | 6–8 | 🔮 Planned |
+| **Phase 11** | **Analyzers + dedicated plotting**: `mesa_plot_history`/`mesa_plot_profile` (matplotlib → inline PNG; presets HR / Kippenhahn / abundance — reuse ecosystem tools found in Phase 13 before hand-rolling). `mesa_analyze_history`/`mesa_analyze_profile` (convective-zone boundaries, core masses, abundances at central depletion) on `mesa_reader`+numpy. | 5–7 | 🔮 Planned |
+| **Phase 12** | **Live visualization window + MESA installation toolset** (was Phase 9): (1) agent-driven live auto-updating viewer (watch the PGSTAR png dir, re-render newest; verify no conflict with MESA's own window; **X11/XQuartz detection** on macOS+Linux surfaced in `get_mesa_info`). (2) install toolset — detect OS/arch; fetch latest MESA release + Zenodo download; matching SDK (Townsend page); guide install; with permission append a `load_mesa` function to the shell rc (sets `MESA_DIR`/`MESASDK_ROOT`, sources `mesasdk_init.sh`, `OMP_NUM_THREADS`, PATH, PS1) instead of raw exports; **record that `load_mesa` exists** and surface it in `get_mesa_info`. | 6–8 | 🔮 Planned |
+| **Phase 13** | **Knowledge / Zenodo / add-ons expansion**: extend publications/inlists search to Zenodo **software** records + **paper-linked pre-built inlists** ("the inlist used for paper X"). Marketplace add-ons → `mesa_search_addons` (Phase 2 remainder). Discover existing common-plot tooling (mesaplot/add-ons/community repos), verify latest-MESA compatibility, feed reusable ones into Phase 11. Research `extending_mesa` (run_star_extras hooks, `x_ctrl`, extra history/profile columns) → candidate safe scaffolder. Fallback home for the `mesa_set_rate_factor` wrapper if non-trivial. | 4–6 | 🔮 Planned |
+| **Phase 2 remainder** | Optional `mesa_serve_docs`. (Marketplace add-ons folded into Phase 13.) | 1–2 | ⬜ Not started |
 
 ## Notes (deferred ideas)
 
-- **Simulation progress (% complete):** hard to estimate and deferred for now. MESA uses adaptive
+- **Dependency policy change (Phase 10):** the original "pure-stdlib / no-pandas" rule is relaxed to
+  permit `numpy`, `matplotlib`, and `mesa_reader` (py_mesa_reader), which make plotting, rates, and
+  analyzers tractable. `mesa_reader` becomes the canonical history/profile loader (the stdlib parser
+  in `columns.py` stays as a no-dep fallback). Still no `pandas`; deps are added only via a proposed
+  `uv add` the user runs — never auto-installed.
+- **Simulation progress (% complete):** hard to estimate and deferred. MESA uses adaptive
   timesteps/resolution and the stopping condition varies (model number, stellar age, a central
   abundance, luminosity, …), so there's no reliable denominator. `mesa_run_status` reports
-  models-written + the log tail (concrete progress) rather than a percentage. Revisit later.
-- **Phase 9 — live visualization window:** let the agent open a window that auto-updates as the sim
-  runs (watch the PGSTAR file dir and re-render the newest image, or a small viewer loop). Verify it
-  doesn't conflict with MESA's own PGSTAR window. Add **X11/XQuartz detection** (macOS via XQuartz,
-  Linux via an X server) so the agent knows whether an on-screen window is even possible — we support
-  both macOS and Linux.
-- **Phase 9 — MESA installation toolset:** a second toolset so a user can install this MCP server
-  first and have the agent install MESA itself: detect the user's OS/arch; find the latest MESA
-  release and its Zenodo download link; find the matching MESA SDK from
-  `http://user.astro.wisc.edu/~townsend/static.php?ref=mesasdk`; walk the user through installation.
-  The official SDK docs tell users to `export` globals directly (fragile) — instead, **with the
-  user's permission, append a `load_mesa` function to their shell rc**: it sets `MESA_DIR` and
-  `MESASDK_ROOT`, sources `$MESASDK_ROOT/bin/mesasdk_init.sh`, sets `OMP_NUM_THREADS`, adds
-  `$MESA_DIR/scripts/shmesa` to PATH, and tags `PS1`. The server should **record that `load_mesa`
-  exists** (e.g. surface it in `get_mesa_info`) so the agent is reminded to use it before running MESA.
+  `models_written` + the `latest_model` columns (concrete progress) rather than a percentage.

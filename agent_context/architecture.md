@@ -28,11 +28,29 @@ docs/
 knowledge/        (Phase 2)
   inlists.py     Scrape mesastar.org marketplace inlists table; Zenodo DOI download → session temp.
   publications.py Query Zenodo community REST API for MESA publications.
+runner.py        Detached MESA runs: start (guards a fresh run over existing output), JSON status
+                 (state + latest_model history columns), stop. State in <ws>/.mesa_run.json.
+cleanup.py       Confirmation-gated removal of a workspace's run output (LOGS*/photos*/png + run
+                 state); refuses inside $MESA_DIR. Never touches inlists/src.
+columns.py       Parse *_columns.list; read_history slices; latest_model (last row → {col: value}).
+inlist.py        Format-preserving inlist editing + read_settings.
+reference.py     Parse *.defaults for authoritative option metadata.
+viz.py           Surface PGSTAR plot images; enable headless file output.
+workspace.py     Provision/list work folders from baselines (outside $MESA_DIR).
 tools/            Thin FastMCP wrappers (no logic):
   info.py        get_mesa_info, set_openmp_threads.
-  knowledge.py   mesa_search_docs, mesa_fetch_doc_page, mesa_fetch_test_suite_index/details.
-  community.py   mesa_search_community_inlists, mesa_download_community_inlist, mesa_search_publications.
+  knowledge.py   mesa_get_option, mesa_search_docs, mesa_fetch_doc_page, mesa_fetch_test_suite_index/details.
+  community.py   mesa_search_community_inlists, mesa_download_community_inlist, mesa_search_publications, mesa_clear_downloads.
+  workspace.py   mesa_create_workspace, mesa_list_workspaces, mesa_clean_workspace.
+  inlist.py      mesa_set_inlist_option, mesa_show_inlist_settings.
+  telemetry.py   mesa_get_output_column, mesa_read_history.
+  run.py         mesa_run, mesa_run_status, mesa_stop_run.
+  viz.py         mesa_enable_pgstar_file_output, mesa_latest_plot, mesa_list_plots.
   execution.py   mesa_execute_shell.
+
+Planned (Phases 10–13): rates.py (REACLIB/weak-rate query), data loaders, plotting.py
+(matplotlib presets), analysis.py (history/profile analyzers), live-viz + install toolsets —
+these introduce numpy/matplotlib/mesa_reader.
 ```
 
 ## Core data flow

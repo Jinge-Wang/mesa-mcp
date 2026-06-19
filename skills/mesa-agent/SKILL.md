@@ -38,7 +38,8 @@ controls are renamed and added between versions. Re-check periodically that you'
 - `mesa_search_community_inlists` / `mesa_download_community_inlist` — find & fetch published community inlists (ephemeral).
 - `mesa_search_publications` — find papers that used MESA (Zenodo community).
 - `mesa_execute_shell` — run a short command (`./mk`, `shmesa …`) in a work folder (bounded, blocking).
-- `mesa_run` / `mesa_run_status` / `mesa_stop_run` — start a long run (`./rn`/`./re`) DETACHED (non-blocking), follow progress, and cancel.
+- `mesa_run` / `mesa_run_status` / `mesa_stop_run` — start a long run (`./rn`/`./re`) DETACHED (non-blocking), follow progress, and cancel. `mesa_run_status` returns JSON (status + the latest model's history columns), not raw terminal text.
+- `mesa_clean_workspace` — reset a workspace by removing run output (LOGS/, photos/, png/, run state). Confirm-gated; dry-runs unless `confirm=True`. Never touches inlists/src.
 - `mesa_enable_pgstar_file_output` / `mesa_latest_plot` / `mesa_list_plots` — view PGSTAR plots headlessly (file output), since the on-screen window won't open in VS Code.
 - `set_openmp_threads` — set parallelism (typically the available core count).
 
@@ -59,6 +60,11 @@ controls are renamed and added between versions. Re-check periodically that you'
 - **Patch, don't overwrite.** Apply changes with `mesa_set_inlist_option` (format-preserving, backed
   up); never rewrite a whole inlist or `run_star_extras.f90`. Read a file before editing it, and
   review the result with `mesa_show_inlist_settings`.
+- **Don't run over old output silently; never auto-clean.** Before a fresh `./rn`, if the workspace
+  already has run output (`mesa_run` will refuse and list it), **ask the user**: clean it with
+  `mesa_clean_workspace` (always dry-run + confirm with the user first), or proceed via
+  `on_existing="continue"`. **Never clean between phases of a multi-phase run** — a later phase loads
+  the model/photo saved by an earlier one; resume with `./re` or the next `./rn` and keep prior output.
 - **Check known issues.** Before a non-trivial setup, check `known bugs` for the active version.
 - **Prefer first-party tools.** `shmesa` is optional and known-buggy; use it only as a convenience,
   never as something a result depends on.

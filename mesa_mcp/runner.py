@@ -9,6 +9,7 @@ workspace OUTSIDE ``$MESA_DIR`` — and the caller must obtain user consent firs
 """
 from __future__ import annotations
 
+import glob
 import json
 import os
 import signal
@@ -101,8 +102,33 @@ def _models_written(ws: str) -> "int | None":
         return None
 
 
-def start_run(env: dict, workspace: str, command: str = "./rn") -> dict:
-    """Start ``command`` detached in ``workspace``; return immediately with the pid + log."""
+def _existing_artifacts(ws: str) -> list:
+    """Describe prior run output in ``ws`` (LOGS*/, photos*/, png/) — used to guard fresh runs."""
+    found = []
+    for logs in sorted(glob.glob(os.path.join(ws, "LOGS*"))):
+        if os.path.isdir(logs):
+            n = len(os.listdir(logs))
+            if n:
+                found.append(f"{os.path.basename(logs)}/ ({n} files)")
+    for name in ("photos", "photos1", "photos2", "png"):
+        p = os.path.join(ws, name)
+        if os.path.isdir(p):
+            n = len(os.listdir(p))
+            if n:
+                found.append(f"{name}/ ({n} files)")
+    return found
+
+
+def start_run(env: dict, workspace: str, command: str = "./rn",
+              on_existing: str = "warn") -> dict:
+    """Start ``command`` detached in ``workspace``; return immediately with the pid + log.
+
+    ``on_existing`` governs a *fresh* run (``./rn``) when prior output already exists:
+    ``"warn"`` (default) refuses and reports the artifacts so the caller can decide; ``"continue"``
+    proceeds anyway (MESA appends/overwrites). A restart (``./re``) always proceeds — it needs the
+    existing photos/models. This function NEVER deletes anything; cleanup is a separate,
+    confirmation-gated tool.
+    """
     ws = os.path.abspath(os.path.expanduser(workspace))
     mesa_dir = env.get(config.MESA_DIR_ENV, "")
     if not os.path.isdir(ws):
@@ -116,6 +142,22 @@ def start_run(env: dict, workspace: str, command: str = "./rn") -> dict:
     if status == "running":
         return {"error": (f"A run is already active here (pid {state['pid']}, "
                           f"`{state['command']}`). Use mesa_stop_run first, or wait.")}
+
+    is_restart = os.path.basename(command.strip().split()[0] if command.strip() else "") == "re"
+    if not is_restart and on_existing == "warn":
+        existing = _existing_artifacts(ws)
+        if existing:
+            return {
+                "needs_decision": True,
+                "workspace": ws,
+                "command": command,
+                "existing": existing,
+                "note": ("This workspace already has run output. A fresh `./rn` will run over it. "
+                         "Decide WITH THE USER: clean first (mesa_clean_workspace, confirm-gated) "
+                         "then re-run, or proceed as-is by re-calling with on_existing='continue'. "
+                         "Do NOT clean if this is a later phase of a multi-phase run — it reuses "
+                         "models saved by earlier phases (use `./re`/`./rn` without cleaning)."),
+            }
 
     for marker in (EXIT_NAME,):
         p = os.path.join(ws, marker)
@@ -149,15 +191,20 @@ def start_run(env: dict, workspace: str, command: str = "./rn") -> dict:
     return {"started": True, "pid": proc.pid, "command": command, "log": log_path, "workspace": ws}
 
 
-def run_status(workspace: str, tail: int = 25) -> dict:
-    """Report the current run's state, models written, and a bounded tail of its output."""
+def run_status(workspace: str, verbose: bool = False, tail: int = 25) -> dict:
+    """Report run state as a structured dict: status, models written, and the latest model's
+    full history columns (aligned key→value) — NOT the raw, line-wrapped terminal output.
+
+    A short raw ``tail`` is included only when ``verbose`` is set, or when the run finished with a
+    non-zero exit code (for error diagnosis), so normal polling stays compact.
+    """
     ws = os.path.abspath(os.path.expanduser(workspace))
     state = _read_state(ws)
     if not state:
         return {"error": f"No run has been started in {ws}."}
     status, code = _status_of(ws, state)
     log_path = state.get("log") or os.path.join(ws, LOG_NAME)
-    return {
+    out = {
         "workspace": ws,
         "status": status,
         "exit_code": code,
@@ -165,8 +212,11 @@ def run_status(workspace: str, tail: int = 25) -> dict:
         "elapsed_s": round(time.time() - state.get("started", time.time()), 1),
         "log": log_path,
         "models_written": _models_written(ws),
-        "tail": _tail(log_path, tail),
+        "latest_model": columns.latest_model({}, ws),
     }
+    if verbose or (code not in (None, 0)):
+        out["tail"] = _tail(log_path, tail)
+    return out
 
 
 def _terminate(pid: int, sig: int) -> bool:

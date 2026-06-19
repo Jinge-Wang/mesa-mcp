@@ -25,9 +25,11 @@ user wins — then update this file.
 
 - **Never run `uv add` / `pip install` yourself.** Propose the exact command + the `pyproject.toml`
   diff, then stop for the user to run and verify. (User preference, stated explicitly.)
-- **Pure-Python, dependency-light.** Prefer the standard library. Do not pull in heavy search
-  engines, scraping frameworks, or ORMs. Current allowed third-party deps: `mcp`, `httpx`,
-  `beautifulsoup4`. Telemetry slicing uses the standard library (no `pandas`).
+- **Dependency-light, but scientific libs are allowed.** Prefer the standard library; do not pull in
+  heavy search engines, scraping frameworks, or ORMs. Allowed third-party deps: `mcp`, `httpx`,
+  `beautifulsoup4`, and (from Phase 10) `numpy`, `matplotlib`, and `mesa_reader` (py_mesa_reader) for
+  plotting, rates, and analysis tools — `mesa_reader` is the canonical history/profile loader, with
+  the stdlib parser in `columns.py` kept as a no-dep fallback. **Still no `pandas`.**
 
 ## 4. Prefer first-party over shmesa
 

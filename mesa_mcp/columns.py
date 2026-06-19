@@ -95,6 +95,37 @@ def _resolve_history_file(path: str) -> "str | None":
     return matches[0] if matches else None
 
 
+def _coerce(v: str):
+    """Best-effort numeric coercion so the value serializes as a JSON number, not a string."""
+    try:
+        i = int(v)
+        return i
+    except ValueError:
+        pass
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
+
+def latest_model(env: dict, path: str) -> dict:
+    """Return the most recent history.data row as an aligned {column: value} dict (all columns).
+
+    Values are numerically coerced where possible. Returns {} if no usable history exists yet.
+    """
+    p = os.path.abspath(os.path.expanduser(path))
+    data_file = _resolve_history_file(p)
+    if not data_file:
+        return {}
+    with open(data_file, "r", encoding="utf-8", errors="replace") as f:
+        nonblank = [ln for ln in f.read().splitlines() if ln.strip()]
+    if len(nonblank) < 6:
+        return {}
+    names = nonblank[4].split()
+    vals = nonblank[-1].split()
+    return {n: _coerce(vals[i]) if i < len(vals) else None for i, n in enumerate(names)}
+
+
 def read_history(env: dict, path: str, columns: "list | None" = None,
                  last_n: int = 20, every: int = 1) -> dict:
     """Read a run's history.data and return a selected, downsampled slice.

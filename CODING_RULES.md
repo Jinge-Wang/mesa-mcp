@@ -24,8 +24,9 @@
 
 ## Stack
 
-- **Python 3.12**, pure-Python and dependency-light.
-- Deps: `mcp[cli]`, `httpx`, `beautifulsoup4`. Telemetry uses the standard library — no `pandas`.
+- **Python 3.12**, dependency-light (stdlib-first; scientific libs allowed where they pay off).
+- Deps: `mcp[cli]`, `httpx`, `beautifulsoup4`, and (from Phase 10) `numpy`, `matplotlib`,
+  `mesa_reader` for plotting/rates/analysis. Still **no `pandas`**.
 - `FastMCP` decorators exclusively; full type hints and explicit tool docstrings.
 
 See [`agent_context/coding_style.md`](agent_context/coding_style.md) for the full style guide.
