@@ -1,45 +1,52 @@
 # MESA MCP Automation Server
 
 An intelligent, physics-aware automation layer built on the [Model Context Protocol](https://modelcontextprotocol.io).
-It bridges an AI coding assistant (primarily **VS Code + the Claude extension**) and a local
-installation of **MESA** (Modules for Experiments in Stellar Astrophysics), so the agent can
-discover documentation, replicate verified test-suite setups, reuse the community's shared inlists
-and publications, query nuclear rates and data libraries, run MESA's build/run toolchain, and
-analyze and plot results — all inside the user's own sourced environment.
+It bridges an AI coding assistant and a local installation of **MESA** (Modules for Experiments in Stellar Astrophysics), so the agent can discover documentation, replicate verified test-suite setups, reuse the community's shared inlists and publications, query nuclear rates and data libraries, run MESA's build/run toolchain, and analyze and plot results — all inside the user's own sourced environment.
 
-> **Status:** Phases 0–13 are complete (39 tools). See the [roadmap](docs/roadmap.md) for the full
-> phase history and any remaining ideas.
+> **Status:** See the [roadmap](docs/roadmap.md) for the full implementation history and any remaining ideas.
 
-> **Example sessions:** the server has been driven end-to-end (build + run a star) from Antigravity
-> and Gemini CLI; recorded histories are in [docs/examples/](docs/examples/).
+> **Example sessions:** the server has been driven end-to-end (build + run a star) from Antigravity and Gemini CLI; recorded histories are in [docs/examples/](docs/examples/).
+
+## Platform support
+
+The MCP server and its tools are identical across hosts; only registration differs.
+
+| Host | Status | Setup |
+|---|---|---|
+| **Claude Code / VS Code** | ✅ Primary | `./install.sh` (writes the plugin + `.mcp.json`). |
+| **Antigravity** | ✅ Supported | Add the ready-made `marketplace/antigravity/mesa/mcp_config.json` to `~/.gemini/config/mcp_config.json`; load `marketplace/mesa-agent.md` as a context file. |
+| **Gemini CLI** | ⚠️ Obsolete → use Antigravity | `gemini mcp add mesa uv run --directory <repo> python main.py`. |
+| **Cursor / Codex / Copilot CLI** | 🔜 Planned | Stub plugin dirs under `marketplace/` (`TODO.md` markers). |
+
+After registering, reload the client and call `get_mesa_info` to confirm the toolchain. Example
+sessions: [docs/examples/](docs/examples/).
 
 ## Project goals
 
-1. **Deterministic environment execution** — wrap every compiler (`./mk`) and runtime (`./rn`,
-   `./re`) workflow inside the user's sourced MESA toolchain (via `load_mesa`).
-2. **Dynamic knowledge fetching** — answer parameter/format questions from the **local docs first**
-   (`$MESA_DIR/docs/source/*.rst`), falling back to `docs.mesastar.org`, to eliminate hallucinated
-   inlist syntax.
-3. **Deep test-suite parsing** — index the test suite and extract real inlist configurations from
-   the actual case directories to replicate verified baselines.
-4. **Intent-based workspace orchestration** — turn a scientific goal ("evolve a 1.5 M⊙ star with
-   diffusion") into provisioned work folders **outside** the read-only MESA tree.
-5. **Context-optimized telemetry & analysis** — return filtered, downsampled history slices,
-   structured run status, extracted stellar properties, and rendered plots instead of dumping
-   sprawling tables into the context window.
+1. **Deterministic environment execution** — wrap every compiler (`./mk`) and runtime (`./rn`, `./re`) workflow inside the user's sourced MESA toolchain (via `load_mesa`).
+2. **Dynamic knowledge fetching** — answer parameter/format questions from the **local docs first** (`$MESA_DIR/docs/source/*.rst`), falling back to `docs.mesastar.org`, to eliminate hallucinated inlist syntax.
+3. **Deep test-suite parsing** — index the test suite and extract real inlist configurations from the actual case directories to replicate verified baselines.
+4. **Intent-based workspace orchestration** — turn a scientific goal ("evolve a 1.5 M⊙ star with diffusion") into provisioned work folders **outside** the read-only MESA tree.
+5. **Context-optimized telemetry & analysis** — return filtered, downsampled history slices, structured run status, extracted stellar properties, and rendered plots instead of dumping sprawling tables into the context window.
+
+## Installation (target: Claude Code / VS Code, macOS & Linux)
+
+Requires [`uv`](https://docs.astral.sh/uv/) and a working local MESA (`load_mesa` defined, `MESA_DIR` set):
+
+```bash
+./install.sh           # verifies uv, syncs deps, smoke-tests, wires up the server
+```
+
+Dependencies are added with your review — the installer/agent shows the exact `uv add` command rather than running it silently. (If MESA itself isn't installed yet, the `mesa_installation_plan` and `mesa_write_load_mesa` tools walk you through it.)
 
 ## Architecture at a glance
 
-The server stays a small set of **deterministic tools**; the "intelligence" lives in two guidance
-layers:
+The server stays a small set of **deterministic tools**; the "intelligence" lives in two guidance layers:
 
 - **[`docs/development/`](docs/development/)** — guides the agent **developing** this server.
-- **[`skills/mesa-agent/`](skills/mesa-agent/)** — guides the agent **using** MESA through the server
-  at runtime (ships in the Claude plugin).
+- **[`skills/mesa-agent/`](skills/mesa-agent/)** — guides the agent **using** MESA through the server at runtime (ships in the Claude plugin).
 
-Key design choices: **local-first docs** (read `.rst` before the network), **version-aware** (probe
-`data/version_number`; `r26.4.1` → `/en/26.4.1/`, a git hash → `/en/latest/`), always following the
-**live `$MESA_DIR`**. See [docs/infrastructure.md](docs/infrastructure.md).
+Key design choices: **local-first docs** (read `.rst` before the network), **version-aware** (probe `data/version_number`; `r26.4.1` → `/en/26.4.1/`, a git hash → `/en/latest/`), always following the **live `$MESA_DIR`**. See [docs/infrastructure.md](docs/infrastructure.md).
 
 ```text
 $MESA_DIR/              MESA installation   (read-only target; version auto-detected)
@@ -49,7 +56,7 @@ mesa-mcp/               this repository      (Python FastMCP server)
 
 ## Tools
 
-All tools are implemented. They group as follows (paired names share a logic module):
+Tools group as follows (paired names share a logic module):
 
 **Environment & diagnostics**
 - `get_mesa_info` — MESA paths, version, compiler, OpenMP, docs source, display capability, `load_mesa` status.
@@ -95,33 +102,6 @@ All tools are implemented. They group as follows (paired names share a logic mod
 - `mesa_installation_plan` — platform-aware plan: latest MESA release + matching SDK (from Zenodo concept DOIs) and step-by-step guidance.
 - `mesa_write_load_mesa` — add a `load_mesa` function to the shell rc (confirm-gated, backed up, duplicate-guarded).
 
-## Installation (target: Claude Code / VS Code, macOS & Linux)
-
-Requires [`uv`](https://docs.astral.sh/uv/) and a working local MESA (`load_mesa` defined,
-`MESA_DIR` set):
-
-```bash
-./install.sh           # verifies uv, syncs deps, smoke-tests, wires up the server
-```
-
-Dependencies are added with your review — the installer/agent shows the exact `uv add` command
-rather than running it silently. (If MESA itself isn't installed yet, the `mesa_installation_plan`
-and `mesa_write_load_mesa` tools walk you through it.)
-
-## Platform support
-
-The MCP server and its tools are identical across hosts; only registration differs.
-
-| Host | Status | Setup |
-|---|---|---|
-| **Claude Code / VS Code** | ✅ Primary | `./install.sh` (writes the plugin + `.mcp.json`). |
-| **Antigravity** | ✅ Supported | Add the ready-made `marketplace/antigravity/mesa/mcp_config.json` to `~/.gemini/config/mcp_config.json`; load `marketplace/mesa-agent.md` as a context file. |
-| **Gemini CLI** | ⚠️ Obsolete → use Antigravity | `gemini mcp add mesa uv run --directory <repo> python main.py`. |
-| **Cursor / Codex / Copilot CLI** | 🔜 Planned | Stub plugin dirs under `marketplace/` (`TODO.md` markers). |
-
-After registering, reload the client and call `get_mesa_info` to confirm the toolchain. Example
-sessions: [docs/examples/](docs/examples/).
-
 ## Documentation
 
 - **[docs/](docs/)** — the documentation hub ([docs/README.md](docs/README.md) is the index).
@@ -134,5 +114,4 @@ sessions: [docs/examples/](docs/examples/).
 
 ## Development
 
-Start with [AGENTS.md](AGENTS.md), then [docs/development/](docs/development/). The non-negotiable
-coding guardrails are in [docs/development/rules.md](docs/development/rules.md).
+Start with [AGENTS.md](AGENTS.md), then [docs/development/](docs/development/). The non-negotiable coding guardrails are in [docs/development/rules.md](docs/development/rules.md).
