@@ -81,6 +81,9 @@ Requires [`uv`](https://docs.astral.sh/uv/) and a working local MESA (`load_mesa
 Dependencies are added with your review — the installer/agent will show the exact `uv add` command
 rather than running it silently.
 
+**Other hosts** (Antigravity, Gemini CLI, …): see [PLATFORMS.md](PLATFORMS.md) for the support
+matrix and per-host setup. (Gemini CLI is obsolete → use Antigravity.)
+
 ## Development
 
 Start with [AGENTS.md](AGENTS.md), then [`agent_context/`](agent_context/). Coding guardrails live

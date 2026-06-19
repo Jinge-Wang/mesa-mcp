@@ -74,7 +74,9 @@ JSON
 }
 write_mcp_json "$REPO_ROOT/.mcp.json"
 write_mcp_json "$REPO_ROOT/marketplace/claude-code/mesa/.mcp.json"
-info "Wrote .mcp.json with repo path: $REPO_ROOT"
+write_mcp_json "$REPO_ROOT/marketplace/gemini/mesa/mcp.json"
+write_mcp_json "$REPO_ROOT/marketplace/antigravity/mesa/mcp_config.json"
+info "Wrote MCP configs with repo path: $REPO_ROOT"
 
 # 5. assemble the Claude plugin: single source of truth for the skill
 PLUGIN_SKILLS="$REPO_ROOT/marketplace/claude-code/mesa/skills"
@@ -91,10 +93,16 @@ $(info "Setup complete. Next steps:")
   Claude Code (plugin + MCP server + skill):
     claude plugin marketplace add "$REPO_ROOT/marketplace"
     claude plugin install mesa@mesa-mcp
+    # ...or just the server:  claude mcp add mesa -- uv run --directory "$REPO_ROOT" python main.py
 
-  Or register just the MCP server (any MCP client / VS Code Claude extension):
-    claude mcp add mesa -- uv run --directory "$REPO_ROOT" python main.py
-    # ...or point your client at $REPO_ROOT/.mcp.json
+  Antigravity CLI:
+    add the "mesa" server to ~/.gemini/config/mcp_config.json
+    (ready-made: $REPO_ROOT/marketplace/antigravity/mesa/mcp_config.json)
+    load $REPO_ROOT/marketplace/mesa-agent.md as a context file.
 
+  Gemini CLI (obsolete -> prefer Antigravity):
+    gemini mcp add mesa uv run --directory "$REPO_ROOT" python main.py
+
+  Full support matrix + details: $REPO_ROOT/PLATFORMS.md
   Then reload the client and call get_mesa_info to confirm the toolchain.
 NEXT
