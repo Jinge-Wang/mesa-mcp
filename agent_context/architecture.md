@@ -32,7 +32,12 @@ runner.py        Detached MESA runs: start (guards a fresh run over existing out
                  (state + latest_model history columns), stop. State in <ws>/.mesa_run.json.
 cleanup.py       Confirmation-gated removal of a workspace's run output (LOGS*/photos*/png + run
                  state); refuses inside $MESA_DIR. Never touches inlists/src.
-columns.py       Parse *_columns.list; read_history slices; latest_model (last row → {col: value}).
+columns.py       Parse *_columns.list; read_history slices (stdlib); latest_model (last row →
+                 {col: value}); load_mesa_data (canonical numpy-backed loader via mesa_reader).
+rates.py         Parse data/rates_data REACLIB + reactions.list; evaluate a rate at T9; set_rate_factor
+                 (wrap special_rate_factor array syntax via inlist.set_option).
+data_libs.py     Read-only data/ access: list libraries; parse .net networks, Lodders abundances,
+                 isotope properties; list files for the rest.
 inlist.py        Format-preserving inlist editing + read_settings.
 reference.py     Parse *.defaults for authoritative option metadata.
 viz.py           Surface PGSTAR plot images; enable headless file output.
@@ -46,11 +51,12 @@ tools/            Thin FastMCP wrappers (no logic):
   telemetry.py   mesa_get_output_column, mesa_read_history.
   run.py         mesa_run, mesa_run_status, mesa_stop_run.
   viz.py         mesa_enable_pgstar_file_output, mesa_latest_plot, mesa_list_plots.
+  rates.py       mesa_get_reaction_rate, mesa_set_rate_factor.
+  data.py        mesa_list_data_libraries, mesa_load_data.
   execution.py   mesa_execute_shell.
 
-Planned (Phases 10–13): rates.py (REACLIB/weak-rate query), data loaders, plotting.py
-(matplotlib presets), analysis.py (history/profile analyzers), live-viz + install toolsets —
-these introduce numpy/matplotlib/mesa_reader.
+Planned (Phases 11–13): plotting.py (matplotlib presets), analysis.py (history/profile
+analyzers — built on columns.load_mesa_data), live-viz + install toolsets.
 ```
 
 ## Core data flow

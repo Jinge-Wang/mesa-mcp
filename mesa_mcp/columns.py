@@ -95,6 +95,27 @@ def _resolve_history_file(path: str) -> "str | None":
     return matches[0] if matches else None
 
 
+def load_mesa_data(path: str, file_type: "str | None" = None):
+    """Canonical numeric loader: return a ``mesa_reader.MesaData`` for a history/profile file.
+
+    This is the data path for the analysis/plotting tools (numpy-backed columns via
+    ``md.data(name)`` and names via ``md.bulk_names``). ``mesa_reader`` is imported lazily so the
+    stdlib ``read_history`` slicer keeps working without the dependency. ``file_type`` is
+    ``'history'``/``'profile'`` (auto-detected when None). Raises RuntimeError if unavailable.
+    """
+    p = os.path.abspath(os.path.expanduser(path))
+    resolved = _resolve_history_file(p) if (file_type != "profile") else (p if os.path.isfile(p) else None)
+    resolved = resolved or (p if os.path.isfile(p) else None)
+    if not resolved:
+        raise RuntimeError(f"No data file found at or under {p}.")
+    try:
+        from mesa_reader import MesaData
+    except ImportError as e:
+        raise RuntimeError("mesa_reader is not installed — run `uv add mesa_reader`, or use "
+                           "read_history for a stdlib slice.") from e
+    return MesaData(resolved, file_type=file_type)
+
+
 def _coerce(v: str):
     """Best-effort numeric coercion so the value serializes as a JSON number, not a string."""
     try:

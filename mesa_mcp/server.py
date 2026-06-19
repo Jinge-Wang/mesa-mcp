@@ -8,7 +8,7 @@ from mcp.server.fastmcp import FastMCP
 
 from . import config, environment
 from .tools import (
-    community, execution, info, inlist, knowledge, run, telemetry, viz, workspace,
+    community, data, execution, info, inlist, knowledge, rates, run, telemetry, viz, workspace,
 )
 
 
@@ -23,6 +23,8 @@ def build_server() -> FastMCP:
     telemetry.register(mcp)
     run.register(mcp)
     viz.register(mcp)
+    rates.register(mcp)
+    data.register(mcp)
     execution.register(mcp)
     return mcp
 

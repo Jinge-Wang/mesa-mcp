@@ -6,11 +6,12 @@ installation of **MESA** (Modules for Experiments in Stellar Astrophysics), so t
 discover documentation, replicate verified test-suite setups, reuse the community's shared inlists
 and publications, and run MESA's build/run toolchain inside the user's own sourced environment.
 
-> **Status:** Phases 0–9 are complete — docs/knowledge tools, workspace orchestration, inlist
-> patching, telemetry, detached runs, headless PGSTAR plotting, community inlists/publications, and
-> the reliability & safety quick-wins (JSON run-status, run-over-output guard, confirm-gated
-> cleanup). Phases 10–13 (rates/data libraries, analyzers + plotting, live viz + MESA install
-> toolset, knowledge/Zenodo/add-ons expansion) are planned; see [TRACKER.md](TRACKER.md).
+> **Status:** Phases 0–10 are complete — docs/knowledge tools, workspace orchestration, inlist
+> patching, telemetry, detached runs, headless PGSTAR plotting, community inlists/publications, the
+> reliability & safety quick-wins (JSON run-status, run-over-output guard, confirm-gated cleanup),
+> and the rates & data-library toolset (REACLIB rate queries, rate-factor scaling, network/abundance/
+> isotope loaders). Phases 11–13 (analyzers + plotting, live viz + MESA install toolset,
+> knowledge/Zenodo/add-ons expansion) are planned; see [TRACKER.md](TRACKER.md).
 
 > **Examples:** The server has been tested with Gemini CLI (now obsolete) and Antigravity CLI. Both successfully built and run a mesa star simulation. The command line histories are provided here: [Geimini CLI](docs/sample-gemini-cli.html) and [Antigravity CLI](docs/sample-agy-cli.html).
 
@@ -71,6 +72,9 @@ mesa-mcp/               this repository      (Python FastMCP server)
 | `mesa_search_community_inlists` / `mesa_download_community_inlist` | ✅ | Find & fetch shared inlists (ephemeral). |
 | `mesa_search_publications` | ✅ | Search the Zenodo MESA publications community. |
 | `mesa_clear_downloads` | ✅ | Purge the ephemeral session download dir (also auto-purged on exit). |
+| `mesa_get_reaction_rate` | ✅ | Look up a reaction's JINA REACLIB fit set(s), citation, and rate evaluated at T9. |
+| `mesa_set_rate_factor` | ✅ | Scale a specific reaction's rate (wraps the `special_rate_factor` array syntax). |
+| `mesa_list_data_libraries` / `mesa_load_data` | ✅ | Browse `data/` libraries; load networks, solar abundances, isotope properties. |
 
 ## Installation (target: Claude Code / VS Code, macOS & Linux)
 
