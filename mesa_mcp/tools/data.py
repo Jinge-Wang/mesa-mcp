@@ -25,11 +25,16 @@ def register(mcp) -> None:
         - `library="solar"` — solar abundance pattern. `name="lodders09"` (default) / `"lodders03"`
           → per-isotope mass fractions.
         - `library="isotope"` — one isotope's properties. `name="c12"` → mass, Z, N, spin, mass excess.
+        - `library="colors"` — synthetic-photometry data. No `name` → a summary; `name="filters"` →
+          every survey's bands; `name="models"` → the stellar-model SED grids.
 
-        Any other library name that matches a `data/*_data` subdir lists its files (no parser yet).
+        Any other library name that matches a `data/*_data` subdir returns a **structured inventory**
+        (subdirs, file count + total size, by-extension and by-table-family groupings, samples) —
+        e.g. `kap`, `eosDT`, `atm`, `ionization`, `roche`. The large EOS/opacity grids are inventoried,
+        not numerically parsed.
 
         Args:
-            library: 'net', 'solar', 'isotope', or a data subdir name (e.g. 'kap_data').
-            name: the specific item within the library (network/pattern/isotope name).
+            library: 'net', 'solar', 'isotope', 'colors', or a data subdir name (e.g. 'kap_data').
+            name: the specific item within the library (network/pattern/isotope/selector).
         """
         return json.dumps(data_libs.load_data(build_env_context(), library, name), indent=2)

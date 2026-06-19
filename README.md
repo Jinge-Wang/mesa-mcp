@@ -92,6 +92,7 @@ Tools group as follows (paired names share a logic module):
 **Documentation & knowledge**
 - `mesa_get_option` — a control's exact default + docs, from the authoritative `.defaults` files.
 - `mesa_search_docs` / `mesa_fetch_doc_page` — ranked local-first docs search; fetch a page (local `.rst` or network).
+- `mesa_serve_docs` / `mesa_stop_docs` — serve the local docs as a website (detached; optional `sphinx-build`).
 - `mesa_fetch_test_suite_index` / `mesa_fetch_test_suite_details` — list test cases; get a case's description + real inlists.
 
 **Community & Zenodo**
@@ -123,7 +124,7 @@ Tools group as follows (paired names share a logic module):
 **Nuclear rates & data libraries**
 - `mesa_get_reaction_rate` — a reaction's JINA REACLIB fit set(s), citation, and rate evaluated at T9.
 - `mesa_set_rate_factor` — scale a specific reaction's rate (wraps the `special_rate_factor` array syntax).
-- `mesa_list_data_libraries` / `mesa_load_data` — browse `data/` libraries; load networks, solar abundances, isotope properties.
+- `mesa_list_data_libraries` / `mesa_load_data` — browse `data/` libraries; parse networks, solar abundances, isotopes, and `colors` filters/models; structured inventory for the rest.
 
 **MESA installation**
 - `mesa_install_plan` — platform-aware plan: latest MESA release + matching SDK (from Zenodo concept DOIs) and step-by-step guidance.
@@ -140,9 +141,9 @@ ecosystem is uneven — treat the "partial" and "not yet" rows as **not fully te
 | **Nuclear rates (`net`/REACLIB)** and the **network / Lodders-abundance / isotope** data libraries | ✅ Supported |
 | **`binary`** — workspace template + `&binary_controls` options | ⚠️ Partial (less end-to-end testing) |
 | **`astero`** — `&astero_search_controls` options via the reference layer | ⚠️ Partial (no asteroseismic post-processing) |
-| **Other `data/` libraries** (`atm`, `colors`, `eos`, `kap`, `ionization`, `roche`) | ⚠️ Listed by `mesa_load_data`, not parsed |
-| **GYRE / adipls** (stellar oscillations / asteroseismology) | ❌ Not integrated |
-| **`colors` → photometry/magnitudes** pipeline | ❌ Not implemented |
+| **`colors`** — filter sets (by survey) + stellar-model grids via `mesa_load_data` | ⚠️ Parsed/inventoried (no magnitude pipeline yet) |
+| **Other `data/` libraries** (`atm`, `eos`, `kap`, `ionization`, `roche`) | ⚠️ Structured inventory via `mesa_load_data`, not numerically parsed |
+| **GYRE / adipls** (stellar oscillations / asteroseismology) | ⚠️ Detected/reported by `mesa_get_info`, not driven |
 | **Platform** | macOS (Apple Silicon) tested; Linux supported by design but less exercised; Windows unsupported |
 
 Broadening this coverage is tracked as **Phase 14** in the [roadmap](docs/roadmap.md).

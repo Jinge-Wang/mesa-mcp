@@ -8,6 +8,7 @@ from ..docs import sources
 from ..environment import (
     build_env_context,
     check_mesa_environment,
+    detect_gyre,
     run_command,
     set_omp_threads_override,
 )
@@ -41,6 +42,13 @@ def register(mcp) -> None:
         load_mesa = installer.detect_load_mesa()
         load_mesa_str = (f"defined in {load_mesa['rc_file']}" if load_mesa["defined"]
                          else "not defined (use mesa_install_set_env)")
+        gyre = detect_gyre(env)
+        if gyre["present"]:
+            vtag = f" (v{gyre['version']})" if gyre["version"] else ""
+            gdir = "set" if gyre["gyre_dir_env"] else "not set"
+            gyre_str = f"bundled{vtag} at {gyre['path']}; GYRE_DIR {gdir} — not driven by this server"
+        else:
+            gyre_str = "not bundled"
 
         available_cores = os.cpu_count() or 0
         omp_threads = env.get("OMP_NUM_THREADS", "NOT_SET")
@@ -58,6 +66,7 @@ def register(mcp) -> None:
             f"PGSTAR_DISPLAY: {pgstar_display}",
             f"WINDOW_CAPABILITY: {display_cap}",
             f"LOAD_MESA: {load_mesa_str}",
+            f"GYRE: {gyre_str}",
             f"COMPILER_GFORTRAN: {gfortran_clean}",
             f"OMP_NUM_THREADS: {omp_threads}",
             f"AVAILABLE_CPU_CORES: {available_cores}",

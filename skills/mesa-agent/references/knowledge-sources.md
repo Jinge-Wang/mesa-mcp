@@ -36,9 +36,7 @@ the matching version only when local files are absent.
 | Software, datasets, or the **inlists used for a specific paper** | `mesa_search_zenodo(query[, resource_type])` — all Zenodo record types, with per-file download links |
 | Community **add-ons** (tools, repos, extensions) | `mesa_search_addons(query)` |
 | Nuclear reaction rates / data libraries | `mesa_get_reaction_rate(reaction, t9)`; `mesa_list_data_libraries` → `mesa_load_data(library, name)` |
-
-Not yet implemented (don't assume present): a local docs HTTP server. For that, give the user the
-URL rather than guessing.
+| Browse the docs in a **browser** | `mesa_serve_docs()` serves the local docs over HTTP (pass `rebuild=True` to build HTML); `mesa_stop_docs()` stops it. Prefer `mesa_search_docs`/`mesa_fetch_doc_page` for quick lookups. |
 
 ## Rule
 If a fact isn't confirmable from these sources for the installed version, say so — don't fill the

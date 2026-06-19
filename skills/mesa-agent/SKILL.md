@@ -31,6 +31,7 @@ controls are renamed and added between versions. Re-check periodically that you'
 - `mesa_get_info` — confirm the toolchain, MESA version, and docs source first.
 - `mesa_get_option` — a control's exact default + documentation (the precise way to verify before writing).
 - `mesa_search_docs` / `mesa_fetch_doc_page` — search/read the docs and all options (controls, guides, known bugs).
+- `mesa_serve_docs` / `mesa_stop_docs` — serve the local docs in a browser (optional `rebuild=True` builds HTML); prefer search/fetch for quick lookups.
 - `mesa_fetch_test_suite_index` / `mesa_fetch_test_suite_details` — find a verified baseline and copy its real inlists.
 - `mesa_create_workspace` / `mesa_list_workspaces` — provision a work folder outside the MESA tree from a baseline, then run it.
 - `mesa_set_inlist_option` — set a control in an inlist, format-preserving + backed up (the safe edit tool).

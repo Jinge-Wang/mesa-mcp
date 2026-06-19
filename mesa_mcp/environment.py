@@ -7,11 +7,34 @@ main.py — this is the canonical implementation; build on it, do not rewrite it
 """
 from __future__ import annotations
 
+import glob
 import os
 import platform
+import re
 import subprocess
 
 from . import config
+
+
+def detect_gyre(env: dict) -> dict:
+    """Report whether the GYRE oscillation code is bundled with this MESA install.
+
+    GYRE ships under ``$MESA_DIR/gyre`` but is a separate code (its own ``$GYRE_DIR`` + workflow);
+    this MCP server does not yet drive GYRE — it only reports presence so the agent knows it's there.
+    """
+    mesa_dir = env.get(config.MESA_DIR_ENV, "")
+    gyre_path = os.path.join(mesa_dir, "gyre") if mesa_dir else ""
+    present = bool(gyre_path) and os.path.isdir(gyre_path)
+    ver = None
+    if present:
+        tarballs = glob.glob(os.path.join(gyre_path, "gyre-*.tar.gz"))
+        for t in tarballs:
+            m = re.search(r"gyre-([\d.]+)\.tar\.gz$", os.path.basename(t))
+            if m:
+                ver = m.group(1)
+                break
+    return {"present": present, "path": gyre_path if present else None,
+            "version": ver, "gyre_dir_env": env.get("GYRE_DIR", "") or None}
 
 # Marker printed immediately before the `env` dump so the parser can skip any
 # shell startup noise that precedes it.

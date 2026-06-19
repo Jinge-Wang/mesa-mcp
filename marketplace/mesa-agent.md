@@ -34,7 +34,7 @@ inspect (`mesa_read_history` / `mesa_analyze_history`) → plot (`mesa_plot_hist
 
 ## Tools (names may vary slightly by host)
 - **Diagnostics:** `mesa_get_info`, `mesa_set_openmp_threads`
-- **Docs/options:** `mesa_get_option`, `mesa_search_docs`, `mesa_fetch_doc_page`, `mesa_get_output_column`
+- **Docs/options:** `mesa_get_option`, `mesa_search_docs`, `mesa_fetch_doc_page`, `mesa_serve_docs`/`mesa_stop_docs`, `mesa_get_output_column`
 - **Test suite:** `mesa_fetch_test_suite_index`, `mesa_fetch_test_suite_details`
 - **Workspace:** `mesa_create_workspace`, `mesa_list_workspaces`, `mesa_clear_workspace` (confirm-gated)
 - **Inlists:** `mesa_set_inlist_option`, `mesa_show_inlist_settings`

@@ -1,9 +1,10 @@
 """FastMCP tools: documentation search/fetch and test-suite discovery (local-first)."""
 from __future__ import annotations
 
+import json
 import os
 
-from .. import reference
+from .. import docs_server, reference
 from ..docs import fetch, sources, test_suite
 from ..docs import search as search_mod
 from ..environment import build_env_context
@@ -185,3 +186,24 @@ def register(mcp) -> None:
             test_name: the case name from mesa_fetch_test_suite_index (e.g. '1M_pre_ms_to_wd').
         """
         return _format_details(test_suite.details(build_env_context(), test_name.strip()))
+
+    @mcp.tool()
+    def mesa_serve_docs(port: int = 8000, rebuild: bool = False) -> str:
+        """Serve the installed MESA documentation as a local website (detached) and return the URL.
+
+        The install ships only Sphinx `.rst` source, so by default this serves an existing built
+        HTML tree if present, otherwise the raw source. Pass `rebuild=True` to build browsable HTML
+        with `sphinx-build` first (best-effort; needs the docs' Sphinx requirements and can take a
+        few minutes). The server runs in the background; stop it with `mesa_stop_docs`. For quick
+        lookups prefer `mesa_search_docs` / `mesa_fetch_doc_page` (no server needed).
+
+        Args:
+            port: preferred local port (an open port is chosen if it's taken).
+            rebuild: build HTML with sphinx-build before serving.
+        """
+        return json.dumps(docs_server.serve_docs(build_env_context(), port, rebuild), indent=2)
+
+    @mcp.tool()
+    def mesa_stop_docs() -> str:
+        """Stop the local MESA documentation server started by `mesa_serve_docs`."""
+        return json.dumps(docs_server.stop_docs(), indent=2)

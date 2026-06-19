@@ -37,7 +37,8 @@ columns.py       Parse *_columns.list; read_history slices (stdlib); latest_mode
 rates.py         Parse data/rates_data REACLIB + reactions.list; evaluate a rate at T9; set_rate_factor
                  (wrap special_rate_factor array syntax via inlist.set_option).
 data_libs.py     Read-only data/ access: list libraries; parse .net networks, Lodders abundances,
-                 isotope properties; list files for the rest.
+                 isotope properties, colors filters/models; structured inventory for the rest.
+docs_server.py   Serve the local MESA docs over HTTP (detached); optional sphinx-build → cached HTML.
 plotting.py      matplotlib (Agg) history/profile plots → PNG under <ws>/plots; presets hr
                  (credit Gautschy's SimpleMesaHRD) and abundance. Built on columns.load_mesa_data.
 analysis.py      Extract stellar properties: analyze_history (core masses, central abundances,
@@ -54,7 +55,7 @@ viz.py           Surface PGSTAR plot images; enable headless file output.
 workspace.py     Provision/list work folders from baselines (outside $MESA_DIR).
 tools/            Thin FastMCP wrappers (no logic):
   info.py        mesa_get_info, mesa_set_openmp_threads.
-  knowledge.py   mesa_get_option, mesa_search_docs, mesa_fetch_doc_page, mesa_fetch_test_suite_index/details.
+  knowledge.py   mesa_get_option, mesa_search_docs, mesa_fetch_doc_page, mesa_fetch_test_suite_index/details, mesa_serve_docs, mesa_stop_docs.
   community.py   mesa_search_community_inlists, mesa_download_community_inlist, mesa_search_publications, mesa_clear_downloads.
   workspace.py   mesa_create_workspace, mesa_list_workspaces, mesa_clear_workspace.
   inlist.py      mesa_set_inlist_option, mesa_show_inlist_settings.

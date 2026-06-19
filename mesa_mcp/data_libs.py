@@ -18,7 +18,7 @@ from . import config
 _LIBRARIES = {
     "atm_data": "Atmosphere boundary-condition tables (T-tau relations, model atmospheres).",
     "chem_data": "Chemical/isotope data: isotopes.data (masses, Z, N) + solar abundance patterns (Lodders).",
-    "colors_data": "Bolometric corrections / color-magnitude tables.",
+    "colors_data": "Filter transmission sets (by survey) + stellar-model SED grids for synthetic photometry.",
     "eosDT_data": "Equation-of-state tables on a (density, temperature) grid.",
     "eosCMS_data": "Chabrier-Mazevet-Soubiran EOS tables.",
     "eosFreeEOS_data": "FreeEOS equation-of-state tables.",
@@ -61,9 +61,10 @@ def list_libraries(env: dict) -> dict:
         libs.append({"library": name, "description": _LIBRARIES.get(name, ""),
                      "files": n_files})
     return {"data_dir": data_dir, "libraries": libs,
-            "loadable": ["net", "solar", "isotope"],
+            "loadable": ["net", "solar", "isotope", "colors"],
             "note": "Use mesa_load_data(library, name) — 'net' (networks), 'solar' (abundances), "
-                    "'isotope' (one isotope's properties) have parsers; others list files."}
+                    "'isotope' (one isotope's properties), 'colors' (filters/models) have dedicated "
+                    "parsers; any other data subdir returns a structured inventory."}
 
 
 def _strip_comment(line: str) -> str:
@@ -202,8 +203,90 @@ def _load_isotope(data_dir: str, name: str) -> dict:
     return {"error": f"Isotope '{name}' not found in isotopes.data."}
 
 
+def _human_size(n: float) -> str:
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024:
+            return f"{n:.0f}{unit}" if unit == "B" else f"{n:.1f}{unit}"
+        n /= 1024
+    return f"{n:.1f}TB"
+
+
+def _family(fn: str) -> str:
+    """Group key for a data file: its name minus a trailing numeric/version run and extension."""
+    stem = os.path.splitext(fn)[0]
+    return re.sub(r"[_-]?\d[\d._-]*$", "", stem) or stem
+
+
+def _inventory(sub: str) -> dict:
+    """A structured inventory of a data subdir: subdirs, by-extension and by-family file groups."""
+    subdirs, files, total = [], [], 0
+    for entry in sorted(os.listdir(sub)):
+        full = os.path.join(sub, entry)
+        if os.path.isdir(full):
+            subdirs.append(entry)
+        elif os.path.isfile(full):
+            files.append(entry)
+            try:
+                total += os.path.getsize(full)
+            except OSError:
+                pass
+    by_ext: dict = {}
+    by_family: dict = {}
+    for fn in files:
+        by_ext[os.path.splitext(fn)[1] or "(none)"] = by_ext.get(os.path.splitext(fn)[1] or "(none)", 0) + 1
+        by_family[_family(fn)] = by_family.get(_family(fn), 0) + 1
+    families = sorted(by_family.items(), key=lambda kv: kv[1], reverse=True)[:25]
+    return {
+        "library": os.path.basename(sub),
+        "description": _LIBRARIES.get(os.path.basename(sub), ""),
+        "subdirs": subdirs,
+        "n_files": len(files),
+        "total_size": _human_size(total),
+        "by_extension": by_ext,
+        "table_families": [{"family": f, "count": c} for f, c in families],
+        "sample_files": files[:15],
+        "note": "Structured inventory (no numeric parser for this library — EOS/opacity/atm tables "
+                "are large binary-ish grids). Use mesa_fetch_doc_page for the module's docs.",
+    }
+
+
+def _load_colors(data_dir: str, name: str) -> dict:
+    """Inventory the colors library: filter sets (survey → bands) and stellar-model grids."""
+    cd = os.path.join(data_dir, "colors_data")
+    if not os.path.isdir(cd):
+        return {"error": "colors_data not found."}
+    filters_dir = os.path.join(cd, "filters")
+    models_dir = os.path.join(cd, "stellar_models")
+    key = name.strip().lower()
+
+    if key in ("", "summary", "filters"):
+        surveys = {}
+        if os.path.isdir(filters_dir):
+            for survey in sorted(os.listdir(filters_dir)):
+                sp = os.path.join(filters_dir, survey)
+                if not os.path.isdir(sp):
+                    continue
+                bands = sorted(os.path.splitext(f)[0]
+                               for _r, _d, fs in os.walk(sp) for f in fs if f.endswith(".dat"))
+                surveys[survey] = bands
+        if key == "filters":
+            return {"library": "colors", "filters": surveys,
+                    "n_surveys": len(surveys), "n_bands": sum(len(b) for b in surveys.values())}
+        models = sorted(os.listdir(models_dir)) if os.path.isdir(models_dir) else []
+        return {"library": "colors",
+                "filter_surveys": {s: len(b) for s, b in surveys.items()},
+                "stellar_models": models,
+                "note": "mesa_load_data('colors','filters') lists every band; "
+                        "('colors','models') lists the stellar-model grids."}
+
+    if key in ("models", "stellar_models"):
+        models = sorted(os.listdir(models_dir)) if os.path.isdir(models_dir) else []
+        return {"library": "colors", "stellar_models": models, "count": len(models)}
+    return {"error": f"colors: unknown selector '{name}'. Use '', 'filters', or 'models'."}
+
+
 def load_data(env: dict, library: str, name: str = "") -> dict:
-    """Dispatch to a parser for a known library, else list the matching data subdir's files."""
+    """Dispatch to a parser for a known library, else return a structured inventory of the subdir."""
     data_dir = _data_dir(env.get(config.MESA_DIR_ENV, ""))
     if not data_dir:
         return {"error": "No data/ directory under MESA_DIR."}
@@ -214,12 +297,11 @@ def load_data(env: dict, library: str, name: str = "") -> dict:
         return _load_solar(data_dir, name.strip())
     if key in ("isotope", "isotopes", "chem"):
         return _load_isotope(data_dir, name.strip())
+    if key in ("colors", "color"):
+        return _load_colors(data_dir, name)
 
-    # Fallback: if it names a real data subdir, list its files (bounded).
+    # Fallback: a structured inventory of the named data subdir.
     sub = os.path.join(data_dir, library if library.endswith("_data") else library + "_data")
     if os.path.isdir(sub):
-        files = sorted(os.listdir(sub))[:200]
-        return {"library": os.path.basename(sub), "description": _LIBRARIES.get(os.path.basename(sub), ""),
-                "files": files, "count": len(files),
-                "note": "No dedicated parser for this library yet — listing contents."}
+        return _inventory(sub)
     return {"error": f"Unknown library '{library}'. Use mesa_list_data_libraries to discover them."}
