@@ -42,6 +42,12 @@ plotting.py      matplotlib (Agg) history/profile plots → PNG under <ws>/plots
                  (credit Gautschy's SimpleMesaHRD) and abundance. Built on columns.load_mesa_data.
 analysis.py      Extract stellar properties: analyze_history (core masses, central abundances,
                  phase, TAMS) and analyze_profile (mixing zones, abundances, burning regions).
+display.py       Detect on-screen-window capability (macOS Quartz/XQuartz, Linux X11/Wayland) +
+                 recommended matplotlib backend. Used by get_mesa_info and live_view.
+live_view.py     Standalone auto-refreshing image viewer (watches a workspace's newest PNG) +
+                 detached launch/stop helpers. Reads only files MESA writes — no PGSTAR conflict.
+installer.py     MESA install help: detect_platform, fetch latest release + per-platform SDK from
+                 the Zenodo software API, build/write a load_mesa shell function (confirm-gated).
 inlist.py        Format-preserving inlist editing + read_settings.
 reference.py     Parse *.defaults for authoritative option metadata.
 viz.py           Surface PGSTAR plot images; enable headless file output.
@@ -59,10 +65,12 @@ tools/            Thin FastMCP wrappers (no logic):
   data.py        mesa_list_data_libraries, mesa_load_data.
   plotting.py    mesa_plot_history, mesa_plot_profile.
   analysis.py    mesa_analyze_history, mesa_analyze_profile.
+  viz.py         …also mesa_open_live_view, mesa_close_live_view (live_view.py).
+  install.py     mesa_installation_plan, mesa_write_load_mesa.
   execution.py   mesa_execute_shell.
 
-Planned (Phases 12–13): live-viz window + X11/XQuartz detection, MESA install toolset,
-knowledge/Zenodo/add-ons expansion (incl. Kippenhahn via ecosystem-tool discovery).
+Planned (Phase 13): knowledge/Zenodo/add-ons expansion — Zenodo software + paper-linked inlists,
+marketplace add-ons, extending_mesa research, Kippenhahn via ecosystem-tool discovery.
 ```
 
 ## Core data flow

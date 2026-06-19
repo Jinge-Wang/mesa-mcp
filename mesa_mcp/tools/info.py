@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 
-from .. import version
+from .. import display, installer, version
 from ..docs import sources
 from ..environment import (
     build_env_context,
@@ -37,6 +37,10 @@ def register(mcp) -> None:
         shmesa_path = run_command(["which", "shmesa"], env)
         shmesa = shmesa_path if shmesa_path.startswith("/") else "NOT_FOUND"
         pgstar_display = env.get("DISPLAY", "") or "not set (headless — use PGSTAR file output for plots)"
+        display_cap = display.summary_line(env)
+        load_mesa = installer.detect_load_mesa()
+        load_mesa_str = (f"defined in {load_mesa['rc_file']}" if load_mesa["defined"]
+                         else "not defined (use mesa_write_load_mesa)")
 
         available_cores = os.cpu_count() or 0
         omp_threads = env.get("OMP_NUM_THREADS", "NOT_SET")
@@ -52,6 +56,8 @@ def register(mcp) -> None:
             f"DOCS_SOURCE: {src['mode']} -> {src['local_dir'] or src['network_base']}",
             f"SHMESA: {shmesa} (optional; treat as best-effort, may be buggy)",
             f"PGSTAR_DISPLAY: {pgstar_display}",
+            f"WINDOW_CAPABILITY: {display_cap}",
+            f"LOAD_MESA: {load_mesa_str}",
             f"COMPILER_GFORTRAN: {gfortran_clean}",
             f"OMP_NUM_THREADS: {omp_threads}",
             f"AVAILABLE_CPU_CORES: {available_cores}",

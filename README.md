@@ -6,13 +6,14 @@ installation of **MESA** (Modules for Experiments in Stellar Astrophysics), so t
 discover documentation, replicate verified test-suite setups, reuse the community's shared inlists
 and publications, and run MESA's build/run toolchain inside the user's own sourced environment.
 
-> **Status:** Phases 0–11 are complete — docs/knowledge tools, workspace orchestration, inlist
+> **Status:** Phases 0–12 are complete — docs/knowledge tools, workspace orchestration, inlist
 > patching, telemetry, detached runs, headless PGSTAR plotting, community inlists/publications, the
 > reliability & safety quick-wins (JSON run-status, run-over-output guard, confirm-gated cleanup),
 > the rates & data-library toolset (REACLIB rate queries, rate-factor scaling, network/abundance/
-> isotope loaders), and the analysis & plotting toolset (history/profile analyzers, matplotlib HR/
-> abundance plots). Phases 12–13 (live viz + MESA install toolset, knowledge/Zenodo/add-ons
-> expansion) are planned; see [TRACKER.md](TRACKER.md).
+> isotope loaders), the analysis & plotting toolset (history/profile analyzers, matplotlib HR/
+> abundance plots), a live auto-updating viewer window with display detection, and a MESA
+> installation toolset (platform-aware release/SDK lookup + `load_mesa` helper). Phase 13
+> (knowledge/Zenodo/add-ons expansion) is planned; see [TRACKER.md](TRACKER.md).
 
 > **Examples:** The server has been tested with Gemini CLI (now obsolete) and Antigravity CLI. Both successfully built and run a mesa star simulation. The command line histories are provided here: [Geimini CLI](docs/sample-gemini-cli.html) and [Antigravity CLI](docs/sample-agy-cli.html).
 
@@ -78,6 +79,9 @@ mesa-mcp/               this repository      (Python FastMCP server)
 | `mesa_list_data_libraries` / `mesa_load_data` | ✅ | Browse `data/` libraries; load networks, solar abundances, isotope properties. |
 | `mesa_plot_history` / `mesa_plot_profile` | ✅ | Render history/profile plots (matplotlib → inline PNG); presets `hr` and `abundance`. |
 | `mesa_analyze_history` / `mesa_analyze_profile` | ✅ | Extract core masses, central abundances, evolutionary phase, convective zones, burning regions. |
+| `mesa_open_live_view` / `mesa_close_live_view` | ✅ | Open a separate auto-refreshing desktop window that follows a run's newest plot (where a display exists). |
+| `mesa_installation_plan` | ✅ | Platform-aware plan: latest MESA release + matching SDK (from Zenodo) and step-by-step guidance. |
+| `mesa_write_load_mesa` | ✅ | Add a `load_mesa` function to the shell rc (confirm-gated, backed up, duplicate-guarded). |
 
 ## Installation (target: Claude Code / VS Code, macOS & Linux)
 

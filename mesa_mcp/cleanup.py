@@ -16,6 +16,7 @@ import os
 import shutil
 
 from . import config
+from .live_view import LOG_NAME as LV_LOG_NAME, STATE_NAME as LV_STATE_NAME
 from .runner import EXIT_NAME, LOG_NAME, STATE_NAME, _is_within
 
 
@@ -48,7 +49,7 @@ def _targets(ws: str) -> list:
         p = os.path.join(ws, name)
         if os.path.isdir(p):
             paths.append(p)
-    for name in (LOG_NAME, STATE_NAME, EXIT_NAME):
+    for name in (LOG_NAME, STATE_NAME, EXIT_NAME, LV_STATE_NAME, LV_LOG_NAME):
         p = os.path.join(ws, name)
         if os.path.exists(p):
             paths.append(p)

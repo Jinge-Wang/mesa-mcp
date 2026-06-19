@@ -1,9 +1,10 @@
 """FastMCP tools: surface PGSTAR plot images and enable headless file output."""
 from __future__ import annotations
 
+import json
 import os
 
-from .. import viz
+from .. import live_view, viz
 from ..environment import build_env_context
 
 try:  # Inline image content where the host supports it.
@@ -89,3 +90,28 @@ def register(mcp) -> None:
             interval: write a plot every N models (default 10).
         """
         return _format_enable(viz.enable_file_output(build_env_context(), workspace, plots, out_dir, interval))
+
+    @mcp.tool()
+    def mesa_open_live_view(workspace: str, interval: float = 2.0) -> str:
+        """Open a separate, auto-refreshing desktop window that watches a workspace's plot
+        directory and re-renders the newest PNG every `interval` seconds — so a run can be watched
+        live even though PGSTAR's own on-screen window can't open in VS Code / headless sessions.
+        It only reads the PNGs MESA writes (enable them with mesa_enable_pgstar_file_output), so it
+        never conflicts with MESA's PGSTAR. Requires an on-screen display (see get_mesa_info's
+        DISPLAY line); returns an error with guidance if the host is headless. Close the window or
+        call mesa_close_live_view to stop it.
+
+        Args:
+            workspace: the work-folder path being run.
+            interval: seconds between refreshes (default 2).
+        """
+        return json.dumps(live_view.launch(build_env_context(), workspace, interval), indent=2)
+
+    @mcp.tool()
+    def mesa_close_live_view(workspace: str) -> str:
+        """Close the live-view window opened by mesa_open_live_view for a workspace.
+
+        Args:
+            workspace: the work-folder path.
+        """
+        return json.dumps(live_view.stop_live_view(workspace), indent=2)
