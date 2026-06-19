@@ -8,7 +8,7 @@ Two layers (a minimal MCP server plus guidance layers):
 
 - **MCP server** = a small set of *deterministic* tools.
 - **Guidance layers** = where the "intelligence" lives:
-  - `agent_context/` for the agent **building** the server (dev-time).
+  - `docs/development/` for the agent **building** the server (dev-time).
   - `skills/mesa-agent/` for the agent **using** MESA at runtime (ships in the plugin).
 
 ## Package map (`mesa_mcp/`)

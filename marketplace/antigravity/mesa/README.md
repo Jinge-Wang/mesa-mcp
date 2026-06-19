@@ -28,4 +28,4 @@ Load [`../../mesa-agent.md`](../../mesa-agent.md) as a context/system file so th
 MESA guardrails (confirm the workspace + any run; never invent inlist options; patch don't
 overwrite). Reload Antigravity afterward, then try: *"list my current MESA information."*
 
-See the example session in [`../../../docs/sample-agy-cli.html`](../../../docs/sample-agy-cli.html).
+See the example session in [`../../../docs/examples/sample-antigravity-cli.html`](../../../docs/examples/sample-antigravity-cli.html).

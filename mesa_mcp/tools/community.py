@@ -1,8 +1,10 @@
 """FastMCP tools: community inlists and MESA publications (network knowledge)."""
 from __future__ import annotations
 
+import json
+
 from .. import config
-from ..knowledge import inlists, publications
+from ..knowledge import addons, inlists, publications
 
 
 def _format_inlists(results: list, query: str) -> str:
@@ -96,6 +98,48 @@ def register(mcp) -> None:
             return _format_pubs(publications.search(query, limit), query)
         except Exception as e:
             return f"Could not reach the Zenodo MESA community: {e}"
+
+    @mcp.tool()
+    def mesa_search_zenodo(query: str, resource_type: str = "", limit: int = 10) -> str:
+        """Search the MESA Zenodo community across **all record types** (software, datasets,
+        pre-built inlist bundles, publications) and return each record's type, version, DOI, and
+        **downloadable files** as JSON. Use this to find the data/software/inlists tied to a paper
+        (e.g. "the inlist set used for paper X"), beyond the curated marketplace table. Optionally
+        filter with `resource_type` (e.g. 'software', 'dataset', 'publication').
+
+        Args:
+            query: free-text query (paper title, author, topic, object).
+            resource_type: optional Zenodo type filter ('' = all).
+            limit: maximum number of results (1–50, default 10).
+        """
+        try:
+            return json.dumps(publications.search_records(query, resource_type, limit), indent=2)
+        except Exception as e:
+            return f"Could not reach the Zenodo MESA community: {e}"
+
+    @mcp.tool()
+    def mesa_search_addons(query: str, limit: int = 10) -> str:
+        """Search the MESA marketplace **add-ons** (user-contributed tools, repositories, and
+        extensions — run_star_extras helpers, plotting utilities, syntax highlighting, …). Returns
+        ranked entries with author, type, language, MESA version, and the upstream link.
+
+        Args:
+            query: free-text query matched against description, author, type, and language.
+            limit: maximum number of results (default 10).
+        """
+        try:
+            results = addons.search(query, limit)
+        except Exception as e:
+            return f"Could not reach the add-ons marketplace: {e}"
+        if not results:
+            return f"MESA add-ons: '{query}'\nNo matches."
+        lines = [f"MESA add-ons: '{query}'  ({len(results)} shown)", ""]
+        for r in results:
+            lines.append(f"[{r['index']}] {r['description']}")
+            lines.append(f"     {r['author']}  | {r['type']} | {r['language']} | MESA {r['mesa_version']}")
+            for link in r["links"]:
+                lines.append(f"     {link}")
+        return "\n".join(lines)
 
     @mcp.tool()
     def mesa_clear_downloads() -> str:

@@ -14,17 +14,17 @@ shell environment.
 Primary host workflow: **VS Code + the Claude extension.** The design is kept portable so it can
 later ship to Cursor / Codex / Copilot CLI / Gemini.
 
-## Before you write code: read `agent_context/` in this order
+## Before you write code: read [`docs/development/`](docs/development/) in this order
 
-1. [`agent_context/assumptions.md`](agent_context/assumptions.md) — the verified facts about this
+1. [`docs/development/assumptions.md`](docs/development/assumptions.md) — the verified facts about this
    machine, the two MESA installs, and the environment. Don't re-derive these; trust them but
    verify a path still exists before depending on it.
-2. [`agent_context/rules.md`](agent_context/rules.md) — non-negotiable guardrails.
-3. [`agent_context/coding_style.md`](agent_context/coding_style.md) — how code in this repo is written.
-4. [`agent_context/architecture.md`](agent_context/architecture.md) — module map and data flow.
-5. [`agent_context/glossary.md`](agent_context/glossary.md) — MESA domain terms.
+2. [`docs/development/rules.md`](docs/development/rules.md) — non-negotiable guardrails.
+3. [`docs/development/coding_style.md`](docs/development/coding_style.md) — how code in this repo is written.
+4. [`docs/development/architecture.md`](docs/development/architecture.md) — module map and data flow.
+5. [`docs/development/glossary.md`](docs/development/glossary.md) — MESA domain terms.
 
-The phased roadmap lives in [TRACKER.md](TRACKER.md).
+The phased roadmap lives in [docs/roadmap.md](docs/roadmap.md).
 
 ## The five rules you must never break
 
@@ -42,6 +42,6 @@ The phased roadmap lives in [TRACKER.md](TRACKER.md).
 
 ## Two rule sets, two audiences (don't confuse them)
 
-- **`agent_context/`** (this folder) guides the agent **developing this server** — i.e. you, right now.
-- **`skills/mesa-agent/`** guides the agent **using MESA through this server at runtime**, and ships
+- **[`docs/development/`](docs/development/)** guides the agent **developing this server** — i.e. you, right now.
+- **[`skills/mesa-agent/`](skills/mesa-agent/)** guides the agent **using MESA through this server at runtime**, and ships
   inside the Claude plugin. When you edit one, check whether the other needs the same change.

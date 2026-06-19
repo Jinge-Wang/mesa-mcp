@@ -2,7 +2,7 @@
 
 > ⚠️ **Gemini CLI is obsolete** (retired 18 Jun 2026 for Google One / unpaid tiers). Use
 > **Antigravity CLI** instead — see [`../../antigravity/mesa/`](../../antigravity/mesa/) and the
-> top-level [`PLATFORMS.md`](../../../PLATFORMS.md). The MESA tools are identical.
+> "Platform support" section of [`../../../README.md`](../../../README.md). The MESA tools are identical.
 
 ## Register the MCP server
 ```bash

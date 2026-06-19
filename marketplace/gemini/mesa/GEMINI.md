@@ -1,7 +1,7 @@
 # MESA (via the mesa MCP server)
 
 > **Gemini CLI is obsolete** (retired 18 Jun 2026). Prefer **Antigravity CLI** for Google models —
-> see `../../../PLATFORMS.md`. The MCP server and tools are identical.
+> see the "Platform support" section of `../../../README.md`. The MCP server and tools are identical.
 
 This project uses the `mesa` MCP server to drive a local MESA installation. Act as an expert stellar
 astrophysicist and MESA engineer. Follow the full guidance in `../../mesa-agent.md`.

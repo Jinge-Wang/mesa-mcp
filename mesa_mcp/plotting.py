@@ -55,6 +55,46 @@ def _resolve_profile(ws: str, profile_number: int = 0) -> "str | None":
     return max(cands, key=_num)
 
 
+def _plot_kippenhahn(ws: str, md, xcol: str) -> dict:
+    """A best-effort Kippenhahn diagram: convective regions + core masses vs time/model."""
+    plt = _pyplot()
+    xname = xcol if md.in_data(xcol) else "model_number"
+    x = md.data(xname)
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    drew = []
+    for i in (1, 2, 3):
+        bot, top = f"conv_mx{i}_bot", f"conv_mx{i}_top"
+        if md.in_data(bot) and md.in_data(top):
+            b, t = md.data(bot), md.data(top)
+            ax.fill_between(x, b, t, where=(t > b), color="cornflowerblue", alpha=0.5,
+                            label="convective" if not drew else None)
+            drew.append(f"conv_mx{i}")
+    for col, c, lab in (("he_core_mass", "tab:green", "He core"),
+                        ("c_core_mass", "tab:orange", "C core"),
+                        ("o_core_mass", "tab:red", "O core")):
+        if md.in_data(col):
+            ax.plot(x, md.data(col), color=c, lw=1.2, label=lab)
+    if md.in_data("star_mass"):
+        ax.plot(x, md.data("star_mass"), "k-", lw=1.0, label="total mass")
+
+    if not drew and not md.in_data("he_core_mass") and not md.in_data("star_mass"):
+        plt.close(fig)
+        return {"error": "No Kippenhahn columns (conv_mx*_top/bot, *_core_mass, star_mass) in "
+                         "history.data — add them to history_columns.list and re-run."}
+    ax.set_xlabel(xname)
+    ax.set_ylabel("mass coordinate (Msun)")
+    ax.set_title("Kippenhahn diagram")
+    ax.legend(fontsize=8)
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    out = os.path.join(_plots_dir(ws), "kippenhahn.png")
+    fig.savefig(out, dpi=120)
+    plt.close(fig)
+    return {"path": out, "preset": "kippenhahn", "x": xname,
+            "convective_regions": drew, "n_points": int(len(x))}
+
+
 def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "log_L",
                  preset: str = "", logx: bool = False, logy: bool = False) -> dict:
     """Plot one or more history columns (``y`` may be comma-separated) versus ``x``."""
@@ -65,6 +105,10 @@ def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "l
         md = columns.load_mesa_data(ws, file_type="history")
     except RuntimeError as e:
         return {"error": str(e)}
+
+    if preset.lower() == "kippenhahn":
+        xc = x if (x and x != "model_number") else ("star_age" if md.in_data("star_age") else "model_number")
+        return _plot_kippenhahn(ws, md, xc)
 
     invert_x = False
     title = None

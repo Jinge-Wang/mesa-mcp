@@ -1,11 +1,11 @@
-# agent_context — the dev-agent primer
+# Development — the dev-agent primer
 
-This folder is the canonical, always-loaded context for any AI agent **building** `mesa-mcp`. It
-exists so that every coding session starts from the same verified facts, guardrails, and style —
-instead of re-deriving them from scratch and drifting.
+This folder (`docs/development/`) is the canonical, always-loaded context for any AI agent
+**building** `mesa-mcp`. It exists so that every coding session starts from the same verified facts,
+guardrails, and style — instead of re-deriving them from scratch and drifting.
 
 > Audience note: this is for the agent **developing the server**. The agent that **uses** MESA
-> through the server at runtime is guided by [`../skills/mesa-agent/`](../skills/mesa-agent/)
+> through the server at runtime is guided by [`../../skills/mesa-agent/`](../../skills/mesa-agent/)
 > instead. Keep the two in sync when a change applies to both.
 
 ## Files

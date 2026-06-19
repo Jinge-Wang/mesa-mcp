@@ -36,6 +36,8 @@ def register(mcp) -> None:
 
         - `preset="hr"` draws the classic HR diagram (log L vs log Teff, Teff axis inverted) —
           conventions after A. Gautschy's SimpleMesaHRD, reimplemented on mesa_reader/matplotlib.
+        - `preset="kippenhahn"` draws a Kippenhahn diagram (convective regions + core masses vs
+          time) — needs conv_mx*_top/bot and *_core_mass columns in history.data.
         - Otherwise plot `y` (comma-separated for multiple series) versus `x`, e.g.
           x="star_age", y="log_L,log_Teff".
 

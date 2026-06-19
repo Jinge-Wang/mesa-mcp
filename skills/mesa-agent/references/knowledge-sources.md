@@ -33,9 +33,12 @@ the matching version only when local files are absent.
 |---|---|
 | Published, shared inlists to learn from | `mesa_search_community_inlists(query)` → `mesa_download_community_inlist(<index or title>)` (downloaded to an ephemeral session dir) |
 | Papers that used MESA | `mesa_search_publications(query)` (Zenodo `mesa` community) |
+| Software, datasets, or the **inlists used for a specific paper** | `mesa_search_zenodo(query[, resource_type])` — all Zenodo record types, with per-file download links |
+| Community **add-ons** (tools, repos, extensions) | `mesa_search_addons(query)` |
+| Nuclear reaction rates / data libraries | `mesa_get_reaction_rate(reaction, t9)`; `mesa_list_data_libraries` → `mesa_load_data(library, name)` |
 
-Not yet implemented (don't assume present): the marketplace **add-ons** list, and a local docs HTTP
-server. For those, give the user the URL rather than guessing.
+Not yet implemented (don't assume present): a local docs HTTP server. For that, give the user the
+URL rather than guessing.
 
 ## Rule
 If a fact isn't confirmable from these sources for the installed version, say so — don't fill the

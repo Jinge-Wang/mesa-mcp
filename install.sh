@@ -103,6 +103,6 @@ $(info "Setup complete. Next steps:")
   Gemini CLI (obsolete -> prefer Antigravity):
     gemini mcp add mesa uv run --directory "$REPO_ROOT" python main.py
 
-  Full support matrix + details: $REPO_ROOT/PLATFORMS.md
+  Full support matrix + details: the "Platform support" section of $REPO_ROOT/README.md
   Then reload the client and call get_mesa_info to confirm the toolchain.
 NEXT

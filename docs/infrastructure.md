@@ -26,17 +26,20 @@ workflows as subprocesses inside the user's **sourced** shell environment (so `M
 ```
 server.py        FastMCP instance, tool registration, main().
 config.py        Docs base URL, cache dir, session temp dir, timeouts, env-var names.
-environment.py   Source shell + load_mesa → MESA env; validation. (Moved from main.py.)
+environment.py   Source shell + load_mesa → MESA env; validation.
 version.py       data/version_number → docs version (release vs git hash).
 shell.py         Bounded command execution in the sourced env.
+runner.py · cleanup.py · columns.py · inlist.py · reference.py · workspace.py · viz.py · live_view.py
+rates.py · data_libs.py · plotting.py · analysis.py · display.py · installer.py   (logic modules)
 docs/            sources.py · fetch.py · index.py · search.py · test_suite.py
-knowledge/       inlists.py · publications.py   (Phase 2)
-tools/           info.py · knowledge.py · community.py · execution.py  (thin FastMCP wrappers)
+knowledge/       inlists.py · publications.py · addons.py
+tools/           thin FastMCP wrappers: info · knowledge · community · workspace · inlist ·
+                 telemetry · run · viz · rates · data · plotting · analysis · install · execution
 ```
 
 `tools/` modules hold no logic — they validate inputs, call a logic module, and format the result.
 The full living module map and responsibilities are in
-[`agent_context/architecture.md`](agent_context/architecture.md).
+[`development/architecture.md`](development/architecture.md).
 
 ## Core data flow
 
