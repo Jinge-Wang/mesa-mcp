@@ -20,9 +20,11 @@ INSTALL_DOCS = "https://docs.mesastar.org/en/latest/installation.html"
 _ZENODO_API = "https://zenodo.org/api/records"
 _RELEASE_VER = re.compile(r"^r?\d+\.\d+(\.\d+)?$")
 
-# Concept-DOI record IDs for the SDKs (all-versions DOIs that always resolve to the latest
-# release). Fetching api/records/<conceptrecid> returns the newest version's files directly —
-# more robust than a community search, which can rate-limit or reorder.
+# Concept-DOI record IDs (all-versions DOIs that always resolve to the latest release). Fetching
+# api/records/<conceptrecid> returns the newest version's files directly — more robust than a
+# community search, which can rate-limit or reorder. The community search is only a fallback.
+_RELEASE_CONCEPT = "2602941"  # https://doi.org/10.5281/zenodo.2602941 (the MESA release)
+_RELEASE_DOI_URL = f"https://doi.org/10.5281/zenodo.{_RELEASE_CONCEPT}"
 _SDK_CONCEPT = {
     "mac_arm": "13768950",   # https://doi.org/10.5281/zenodo.13768950
     "linux": "2603136",      # https://doi.org/10.5281/zenodo.2603136
@@ -79,20 +81,33 @@ def _record_info(rec: dict) -> "dict | None":
     }
 
 
+def _resolve_concept(recid: str, timeout: int = 20) -> "dict | None":
+    """Fetch a Zenodo concept record (its latest version's files). None on failure."""
+    try:
+        import httpx
+        r = httpx.get(f"{_ZENODO_API}/{recid}", timeout=timeout, follow_redirects=True)
+        r.raise_for_status()
+        return _record_info(r.json())
+    except Exception:
+        return None
+
+
 def fetch_sdk(sdk_key: str, timeout: int = 20) -> "dict | None":
     """Resolve an SDK's latest download via its concept DOI record (robust). None on failure."""
     recid = _SDK_CONCEPT.get(sdk_key)
     if not recid:
         return None
-    try:
-        import httpx
-        r = httpx.get(f"{_ZENODO_API}/{recid}", timeout=timeout, follow_redirects=True)
-        r.raise_for_status()
-        info = _record_info(r.json())
-    except Exception:
-        return None
+    info = _resolve_concept(recid, timeout)
     if info:
         info["doi"] = _SDK_DOI_URL.get(sdk_key)
+    return info
+
+
+def fetch_release(timeout: int = 20) -> "dict | None":
+    """Resolve the latest MESA release download via its concept DOI record (robust)."""
+    info = _resolve_concept(_RELEASE_CONCEPT, timeout)
+    if info:
+        info["doi"] = _RELEASE_DOI_URL
     return info
 
 
@@ -220,10 +235,12 @@ def installation_plan(env: dict, timeout: int = 20) -> dict:
             sdks[key] = (search.get("sdks") or {}).get(key) if isinstance(search, dict) else None
             sources[key] = "zenodo_search"
 
-    # The release comes only from the community search (no dedicated concept DOI here).
-    if search is None:
-        search = fetch_mesa_software(timeout)
-    release = search.get("release") if isinstance(search, dict) and "release" in search else None
+    # The release: primary = concept DOI (robust); fallback = community search.
+    release = fetch_release(timeout)
+    if not release:
+        if search is None:
+            search = fetch_mesa_software(timeout)
+        release = search.get("release") if isinstance(search, dict) and "release" in search else None
     sdk = sdks.get(plat["sdk_key"]) if plat["sdk_key"] else None
     already = bool(env.get(config.MESA_DIR_ENV))
     return {
@@ -237,13 +254,13 @@ def installation_plan(env: dict, timeout: int = 20) -> dict:
         "sdk_sources": sources,
         "software_error": search.get("error") if isinstance(search, dict) else None,
         "references": {"install_docs": INSTALL_DOCS, "sdk_page": MESASDK_PAGE,
-                       "sdk_concept_doi": _SDK_DOI_URL},
+                       "release_concept_doi": _RELEASE_DOI_URL, "sdk_concept_doi": _SDK_DOI_URL},
         "steps": [
             "1. Install the MESA SDK for your platform (recommended_sdk.download_url), then the build deps.",
             "2. Download + unpack the MESA release (latest_release.download_url) to a path WITHOUT spaces.",
-            "3. Add a load_mesa shell function with mesa_write_load_mesa (sets MESA_DIR/MESASDK_ROOT, "
+            "3. Add a load_mesa shell function with mesa_install_set_env (sets MESA_DIR/MESASDK_ROOT, "
             "sources mesasdk_init.sh, OMP_NUM_THREADS, PATH, PS1).",
             "4. Open a new shell, run `load_mesa`, then `./install` inside $MESA_DIR (this can take a while).",
-            "5. Verify with get_mesa_info.",
+            "5. Verify with mesa_get_info.",
         ],
     }

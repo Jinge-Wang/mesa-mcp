@@ -19,7 +19,7 @@ def _format_start(res: dict) -> str:
     return (f"Started `{res['command']}` detached (pid {res['pid']}) in {res['workspace']}.\n"
             f"Output → {res['log']}\n"
             "This returned immediately and does NOT block. Poll with mesa_run_status; cancel with "
-            "mesa_stop_run.")
+            "mesa_run_stop.")
 
 
 def _format_stop(res: dict) -> str:
@@ -36,14 +36,14 @@ def register(mcp) -> None:
         """Start a MESA run **detached** in a workspace and return immediately — it does NOT
         block, so a long or non-converging run never hangs the session. Output streams to
         `mesa_run.log` in the workspace; monitor with mesa_run_status and cancel with
-        mesa_stop_run.
+        mesa_run_stop.
 
         **Get explicit user consent before calling this** (a run can take a long time). Compile
         first with mesa_execute_shell `./mk`; then run here. Only one run per workspace at a time.
 
         If a fresh `./rn` is requested but the workspace already holds run output (LOGS/, photos/),
         this refuses and lists what's there so you can decide WITH THE USER: clean first
-        (mesa_clean_workspace) or proceed with `on_existing="continue"`. **Never clean a later phase
+        (mesa_clear_workspace) or proceed with `on_existing="continue"`. **Never clean a later phase
         of a multi-phase run** — it reuses models saved by earlier phases. A `./re` restart always
         proceeds (it needs the existing photos).
 
@@ -73,7 +73,7 @@ def register(mcp) -> None:
         return json.dumps(runner.run_status(workspace, verbose=verbose), indent=2)
 
     @mcp.tool()
-    def mesa_stop_run(workspace: str) -> str:
+    def mesa_run_stop(workspace: str) -> str:
         """Stop the active detached run in a workspace (terminates its whole process group).
 
         Args:

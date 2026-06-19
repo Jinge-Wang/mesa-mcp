@@ -84,7 +84,7 @@ def register(mcp) -> None:
         return _format_list(workspace.list_workspaces())
 
     @mcp.tool()
-    def mesa_clean_workspace(workspace: str, confirm: bool = False) -> str:
+    def mesa_clear_workspace(workspace: str, confirm: bool = False) -> str:
         """Reset a workspace by removing only its run *output* — LOGS/, photos/, png/, top-level
         PGSTAR PNGs, and the detached-run state files. Inlists, src/, run_star_extras.f90, and
         make/ are left untouched, and paths inside the MESA install are refused.

@@ -104,5 +104,5 @@ $(info "Setup complete. Next steps:")
     gemini mcp add mesa uv run --directory "$REPO_ROOT" python main.py
 
   Full support matrix + details: the "Platform support" section of $REPO_ROOT/README.md
-  Then reload the client and call get_mesa_info to confirm the toolchain.
+  Then reload the client and call mesa_get_info to confirm the toolchain.
 NEXT

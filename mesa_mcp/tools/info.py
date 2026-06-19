@@ -15,7 +15,7 @@ from ..environment import (
 
 def register(mcp) -> None:
     @mcp.tool()
-    def get_mesa_info() -> str:
+    def mesa_get_info() -> str:
         """Report the MESA build environment: install path, MESA version and the
         documentation version/source it maps to, gfortran, OpenMP threads, CPU cores,
         kernel, shmesa availability, and PATH. Use this first to confirm the toolchain is
@@ -40,7 +40,7 @@ def register(mcp) -> None:
         display_cap = display.summary_line(env)
         load_mesa = installer.detect_load_mesa()
         load_mesa_str = (f"defined in {load_mesa['rc_file']}" if load_mesa["defined"]
-                         else "not defined (use mesa_write_load_mesa)")
+                         else "not defined (use mesa_install_set_env)")
 
         available_cores = os.cpu_count() or 0
         omp_threads = env.get("OMP_NUM_THREADS", "NOT_SET")
@@ -77,10 +77,10 @@ def register(mcp) -> None:
         return "\n".join(lines)
 
     @mcp.tool()
-    def set_openmp_threads(num_threads: int) -> str:
+    def mesa_set_openmp_threads(num_threads: int) -> str:
         """Set OMP_NUM_THREADS for MESA compilation and runs for this server session. The
         value persists and is applied to all subsequent tool calls. Typically set to the
-        available CPU cores reported by get_mesa_info."""
+        available CPU cores reported by mesa_get_info."""
         if num_threads < 1:
             return f"Error: num_threads must be a positive integer, got {num_threads}."
         available_cores = os.cpu_count() or 0

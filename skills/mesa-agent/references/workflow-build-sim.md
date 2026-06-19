@@ -5,7 +5,7 @@ real inlists) and adapting it — never from a blank file or from memory.
 
 ## Steps
 
-1. **Confirm the toolchain.** Call `get_mesa_info`. Note the MESA version, `MESA_DIR`, docs source,
+1. **Confirm the toolchain.** Call `mesa_get_info`. Note the MESA version, `MESA_DIR`, docs source,
    and core count. If the environment status is INVALID, stop and surface the issues.
 2. **Pick a baseline.** Call `mesa_fetch_test_suite_index` and choose the closest case to the user's
    goal (e.g. `1M_pre_ms_to_wd`, `1.5M_with_diffusion`, `make_zams`, a `binary/` case for systems).
@@ -23,12 +23,12 @@ real inlists) and adapting it — never from a blank file or from memory.
    (`&kap`) and `initial_z` (`&controls`) consistent. Follow `references/inlist-namelist-rules.md`.
 6. **Review the configuration.** Call `mesa_show_inlist_settings(<work dir>)` and confirm the set
    options (and that nothing unknown/irrelevant slipped in) with the user before running.
-7. **Set parallelism + compile.** `set_openmp_threads(<cores>)`, then `mesa_execute_shell("./mk",
+7. **Set parallelism + compile.** `mesa_set_openmp_threads(<cores>)`, then `mesa_execute_shell("./mk",
    "<work dir>")` (or `make`). Relay compiler errors.
 8. **Run — only with explicit user consent.** State the command and workspace and **wait for the
    user to confirm**, then start it **detached** with `mesa_run(<work dir>)` — non-blocking, so it
    won't hang the session even for a long or non-converging run. Follow progress with
-   `mesa_run_status(<work dir>)` (state, models written, last output); `mesa_stop_run` cancels.
+   `mesa_run_status(<work dir>)` (state, models written, last output); `mesa_run_stop` cancels.
 9. **Inspect output.** Use `mesa_read_history(<work dir>, columns=…, last_n=…)` for a sliced,
    downsampled view — never dump whole tables (`mesa_get_output_column` documents any column). For
    **plots**, enable PGSTAR file output (`mesa_enable_pgstar_file_output`) *before* running, then view

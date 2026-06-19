@@ -23,13 +23,12 @@ user wins — then update this file.
 
 ## 3. Dependencies & process
 
-- **Never run `uv add` / `pip install` yourself.** Propose the exact command + the `pyproject.toml`
-  diff, then stop for the user to run and verify. (User preference, stated explicitly.)
-- **Dependency-light, but scientific libs are allowed.** Prefer the standard library; do not pull in
-  heavy search engines, scraping frameworks, or ORMs. Allowed third-party deps: `mcp`, `httpx`,
-  `beautifulsoup4`, and (from Phase 10) `numpy`, `matplotlib`, and `mesa_reader` (py_mesa_reader) for
-  plotting, rates, and analysis tools — `mesa_reader` is the canonical history/profile loader, with
-  the stdlib parser in `columns.py` kept as a no-dep fallback. **Still no `pandas`.**
+- **All Python dependencies are managed with `uv`.** Add packages with `uv add <pkg>` (which updates
+  `pyproject.toml` + `uv.lock`); never `pip install` ad hoc into the environment.
+- **Don't add dependencies silently.** Propose the exact `uv add` command and let the user run it
+  (user preference). There's no stdlib-only restriction — add whatever a tool genuinely needs;
+  `mesa_reader` is the canonical history/profile loader (with the stdlib parser in `columns.py` as a
+  no-dep fallback), alongside `numpy`/`matplotlib` for analysis and plotting.
 
 ## 4. Prefer first-party over shmesa
 

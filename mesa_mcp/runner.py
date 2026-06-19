@@ -141,7 +141,7 @@ def start_run(env: dict, workspace: str, command: str = "./rn",
     status, _ = _status_of(ws, state)
     if status == "running":
         return {"error": (f"A run is already active here (pid {state['pid']}, "
-                          f"`{state['command']}`). Use mesa_stop_run first, or wait.")}
+                          f"`{state['command']}`). Use mesa_run_stop first, or wait.")}
 
     is_restart = os.path.basename(command.strip().split()[0] if command.strip() else "") == "re"
     if not is_restart and on_existing == "warn":
@@ -153,7 +153,7 @@ def start_run(env: dict, workspace: str, command: str = "./rn",
                 "command": command,
                 "existing": existing,
                 "note": ("This workspace already has run output. A fresh `./rn` will run over it. "
-                         "Decide WITH THE USER: clean first (mesa_clean_workspace, confirm-gated) "
+                         "Decide WITH THE USER: clean first (mesa_clear_workspace, confirm-gated) "
                          "then re-run, or proceed as-is by re-calling with on_existing='continue'. "
                          "Do NOT clean if this is a later phase of a multi-phase run — it reuses "
                          "models saved by earlier phases (use `./re`/`./rn` without cleaning)."),

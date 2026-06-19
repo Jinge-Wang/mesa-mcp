@@ -18,7 +18,7 @@ The MCP server and its tools are identical across hosts; only registration diffe
 | **Gemini CLI** | ⚠️ Obsolete → use Antigravity | `gemini mcp add mesa uv run --directory <repo> python main.py`. |
 | **Cursor / Codex / Copilot CLI** | 🔜 Planned | Stub plugin dirs under `marketplace/` (`TODO.md` markers). |
 
-After registering, reload the client and call `get_mesa_info` to confirm the toolchain. Example
+After registering, reload the client and call `mesa_get_info` to confirm the toolchain. Example
 sessions: [docs/examples/](docs/examples/).
 
 ## Project goals
@@ -31,13 +31,40 @@ sessions: [docs/examples/](docs/examples/).
 
 ## Installation (target: Claude Code / VS Code, macOS & Linux)
 
-Requires [`uv`](https://docs.astral.sh/uv/) and a working local MESA (`load_mesa` defined, `MESA_DIR` set):
+Requires [`uv`](https://docs.astral.sh/uv/) and a working local MESA (`MESA_DIR` set; [`load_mesa`](#load-mesa-note) defined preferably):
 
 ```bash
 ./install.sh           # verifies uv, syncs deps, smoke-tests, wires up the server
 ```
 
-Dependencies are added with your review — the installer/agent shows the exact `uv add` command rather than running it silently. (If MESA itself isn't installed yet, the `mesa_installation_plan` and `mesa_write_load_mesa` tools walk you through it.)
+Dependencies are added after user review — the installer/agent shows the exact `uv add` command rather than running it silently. (If MESA itself isn't installed yet, the `mesa_install_plan` and `mesa_install_set_env` tools walk user through it.)
+
+<a id="load-mesa-note"></a>
+> [!NOTE]
+> `load_mesa` is not a standard function shipped with MESA. It must be added manually to user's shell configuration file (`~/.bashrc` or `~/.zshrc`) after installing the MESA SDK and downloading the MESA source code.
+> While optional, running MESA inside this function provides an isolated environment and prevents MESA variables from overwriting user's existing system settings.
+>
+> * **Important:** Remember to replace the placeholder absolute paths below with your actual local installation paths (for example, macOS users typically have `MESASDK_ROOT` located in the `/Applications/mesasdk` folder).
+>
+> ```bash
+> function load_mesa() {
+>     # 1. Define Directories
+>     export MESA_DIR=/absolute/path/to/mesa
+>     export MESASDK_ROOT=/absolute/path/to/mesasdk
+> 
+>     # 2. Initialize the SDK
+>     source \$MESASDK_ROOT/bin/mesasdk_init.sh
+> 
+>     # 3. Set MESA-specific environment variables
+>     export OMP_NUM_THREADS=14
+>     export PATH=PATH:MESA_DIR/scripts/shmesa
+> 
+>     # 4. Update the visual prompt tag
+>     export PS1="(mesa) \$PS1"
+> 
+>     echo "MESA SDK and Environment successfully loaded for this session!"
+> }
+> ```
 
 ## Architecture at a glance
 
@@ -59,8 +86,8 @@ mesa-mcp/               this repository      (Python FastMCP server)
 Tools group as follows (paired names share a logic module):
 
 **Environment & diagnostics**
-- `get_mesa_info` — MESA paths, version, compiler, OpenMP, docs source, display capability, `load_mesa` status.
-- `set_openmp_threads` — set `OMP_NUM_THREADS` for the session.
+- `mesa_get_info` — MESA paths, version, compiler, OpenMP, docs source, display capability, `load_mesa` status.
+- `mesa_set_openmp_threads` — set `OMP_NUM_THREADS` for the session.
 
 **Documentation & knowledge**
 - `mesa_get_option` — a control's exact default + docs, from the authoritative `.defaults` files.
@@ -76,13 +103,13 @@ Tools group as follows (paired names share a logic module):
 
 **Workspaces & inlists**
 - `mesa_create_workspace` / `mesa_list_workspaces` — provision/list work folders outside the MESA tree from a baseline.
-- `mesa_clean_workspace` — confirm-gated reset of a workspace's run output (LOGS/, photos/, plots, run state); never touches inlists/src.
+- `mesa_clear_workspace` — confirm-gated reset of a workspace's run output (LOGS/, photos/, plots, run state); never touches inlists/src.
 - `mesa_set_inlist_option` — set a control in an inlist, format-preserving + backed up.
 - `mesa_show_inlist_settings` — show set options vs MESA defaults (with units).
 
 **Build, run & monitor**
 - `mesa_execute_shell` — run a short command in the sourced MESA env (writes sandboxed).
-- `mesa_run` / `mesa_run_status` / `mesa_stop_run` — start a run detached (guards a fresh run over existing output), monitor via JSON status (latest model's columns), cancel.
+- `mesa_run` / `mesa_run_status` / `mesa_run_stop` — start a run detached (guards a fresh run over existing output), monitor via JSON status (latest model's columns), cancel.
 
 **Telemetry, analysis & plotting**
 - `mesa_get_output_column` / `mesa_read_history` — look up output columns; read a sliced `history.data`.
@@ -99,8 +126,26 @@ Tools group as follows (paired names share a logic module):
 - `mesa_list_data_libraries` / `mesa_load_data` — browse `data/` libraries; load networks, solar abundances, isotope properties.
 
 **MESA installation**
-- `mesa_installation_plan` — platform-aware plan: latest MESA release + matching SDK (from Zenodo concept DOIs) and step-by-step guidance.
-- `mesa_write_load_mesa` — add a `load_mesa` function to the shell rc (confirm-gated, backed up, duplicate-guarded).
+- `mesa_install_plan` — platform-aware plan: latest MESA release + matching SDK (from Zenodo concept DOIs) and step-by-step guidance.
+- `mesa_install_set_env` — add a `load_mesa` function to the shell rc (confirm-gated, backed up, duplicate-guarded).
+
+## Support & limitations
+
+The server is built and tested primarily around **single-star evolution**. Coverage of the wider MESA
+ecosystem is uneven — treat the "partial" and "not yet" rows as **not fully tested**:
+
+| Area | Status |
+|---|---|
+| **Single-star (`star`)** — diagnostics, docs/option lookup, test-suite replication, workspaces, inlist editing, run + monitor, telemetry/analysis/plotting | ✅ Supported & exercised |
+| **Nuclear rates (`net`/REACLIB)** and the **network / Lodders-abundance / isotope** data libraries | ✅ Supported |
+| **`binary`** — workspace template + `&binary_controls` options | ⚠️ Partial (less end-to-end testing) |
+| **`astero`** — `&astero_search_controls` options via the reference layer | ⚠️ Partial (no asteroseismic post-processing) |
+| **Other `data/` libraries** (`atm`, `colors`, `eos`, `kap`, `ionization`, `roche`) | ⚠️ Listed by `mesa_load_data`, not parsed |
+| **GYRE / adipls** (stellar oscillations / asteroseismology) | ❌ Not integrated |
+| **`colors` → photometry/magnitudes** pipeline | ❌ Not implemented |
+| **Platform** | macOS (Apple Silicon) tested; Linux supported by design but less exercised; Windows unsupported |
+
+Broadening this coverage is tracked as **Phase 14** in the [roadmap](docs/roadmap.md).
 
 ## Documentation
 

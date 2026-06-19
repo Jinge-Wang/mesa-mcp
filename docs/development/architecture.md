@@ -43,7 +43,7 @@ plotting.py      matplotlib (Agg) history/profile plots → PNG under <ws>/plots
 analysis.py      Extract stellar properties: analyze_history (core masses, central abundances,
                  phase, TAMS) and analyze_profile (mixing zones, abundances, burning regions).
 display.py       Detect on-screen-window capability (macOS Quartz/XQuartz, Linux X11/Wayland) +
-                 recommended matplotlib backend. Used by get_mesa_info and live_view.
+                 recommended matplotlib backend. Used by mesa_get_info and live_view.
 live_view.py     Standalone auto-refreshing image viewer (watches a workspace's newest PNG) +
                  detached launch/stop helpers. Reads only files MESA writes — no PGSTAR conflict.
 installer.py     MESA install help: detect_platform, fetch latest release + per-platform SDK from
@@ -53,20 +53,20 @@ reference.py     Parse *.defaults for authoritative option metadata.
 viz.py           Surface PGSTAR plot images; enable headless file output.
 workspace.py     Provision/list work folders from baselines (outside $MESA_DIR).
 tools/            Thin FastMCP wrappers (no logic):
-  info.py        get_mesa_info, set_openmp_threads.
+  info.py        mesa_get_info, mesa_set_openmp_threads.
   knowledge.py   mesa_get_option, mesa_search_docs, mesa_fetch_doc_page, mesa_fetch_test_suite_index/details.
   community.py   mesa_search_community_inlists, mesa_download_community_inlist, mesa_search_publications, mesa_clear_downloads.
-  workspace.py   mesa_create_workspace, mesa_list_workspaces, mesa_clean_workspace.
+  workspace.py   mesa_create_workspace, mesa_list_workspaces, mesa_clear_workspace.
   inlist.py      mesa_set_inlist_option, mesa_show_inlist_settings.
   telemetry.py   mesa_get_output_column, mesa_read_history.
-  run.py         mesa_run, mesa_run_status, mesa_stop_run.
+  run.py         mesa_run, mesa_run_status, mesa_run_stop.
   viz.py         mesa_enable_pgstar_file_output, mesa_latest_plot, mesa_list_plots.
   rates.py       mesa_get_reaction_rate, mesa_set_rate_factor.
   data.py        mesa_list_data_libraries, mesa_load_data.
   plotting.py    mesa_plot_history, mesa_plot_profile.
   analysis.py    mesa_analyze_history, mesa_analyze_profile.
   viz.py         …also mesa_open_live_view, mesa_close_live_view (live_view.py).
-  install.py     mesa_installation_plan, mesa_write_load_mesa.
+  install.py     mesa_install_plan, mesa_install_set_env.
   execution.py   mesa_execute_shell.
 
 Planned (Phase 13): knowledge/Zenodo/add-ons expansion — Zenodo software + paper-linked inlists,

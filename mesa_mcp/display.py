@@ -3,7 +3,7 @@
 A MESA run's PGSTAR window (and our live viewer) needs a display. On macOS that's the native
 Quartz window server (matplotlib ``macosx`` backend, no X11 needed) or XQuartz; on Linux it's an
 X11/Wayland server (``$DISPLAY`` / ``$WAYLAND_DISPLAY``). This module reports the capability and a
-recommended interactive matplotlib backend, used by ``get_mesa_info`` and the live-view tool.
+recommended interactive matplotlib backend, used by ``mesa_get_info`` and the live-view tool.
 """
 from __future__ import annotations
 

@@ -5,16 +5,17 @@ Conventions specific to `mesa-mcp`. Match the existing `main.py` style; it is th
 ## Language & dependencies
 
 - **Python 3.12** (repo pins `>=3.12`). Use modern typing freely.
-- **Pure-Python and dependency-light.** Standard library first. Third-party deps are limited to
-  `mcp`, `httpx`, `beautifulsoup4` (telemetry stays standard-library — no `pandas`). Adding any new dependency requires the
-  user to run `uv add` themselves — see `rules.md`.
+- **Dependencies are managed with `uv`.** Reach for the standard library when it's the simplest
+  option, but add a package whenever a tool genuinely needs it (current deps include `mcp`, `httpx`,
+  `beautifulsoup4`, `numpy`, `matplotlib`, `mesa_reader`). Adding any new dependency means running
+  `uv add` — propose it for the user to run rather than installing silently; see `rules.md`.
 
 ## Types & docstrings
 
 - **Type hints on every function signature**, including return types.
 - **Every `@mcp.tool` has an explicit, structured docstring.** It is the calling agent's only
   contract. State: what the tool does, when to use it, each argument, and the return shape. Follow
-  the voice of the existing `get_mesa_info` / `set_openmp_threads` docstrings.
+  the voice of the existing `mesa_get_info` / `mesa_set_openmp_threads` docstrings.
 - Module-level and helper docstrings are one-line and purposeful (see `environment.py` helpers).
 
 ## Structure & modularity

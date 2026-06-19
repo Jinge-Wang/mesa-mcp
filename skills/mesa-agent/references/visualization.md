@@ -8,11 +8,11 @@ There are three ways to visualize a run, in order of robustness on a headless/VS
    (profile mass fractions). Pair with `mesa_analyze_history` / `mesa_analyze_profile` for the numbers.
 2. **PGSTAR file output (best for MESA's own composite panels).** See below.
 3. **A live auto-updating window.** `mesa_open_live_view(<work dir>)` opens a separate desktop window
-   that follows the newest plot as the run proceeds — only where a display exists (`get_mesa_info`
+   that follows the newest plot as the run proceeds — only where a display exists (`mesa_get_info`
    reports `WINDOW_CAPABILITY`); `mesa_close_live_view` stops it.
 
 MESA's own on-screen PGSTAR **window** needs a working X11/Quartz display, and in a VS Code terminal /
-remote / headless session it usually won't appear. `get_mesa_info` reports `PGSTAR_DISPLAY` and
+remote / headless session it usually won't appear. `mesa_get_info` reports `PGSTAR_DISPLAY` and
 `WINDOW_CAPABILITY` so you can see whether a display is even available.
 
 **For MESA's PGSTAR panels, the robust approach is file output** — have MESA write plot PNGs to disk

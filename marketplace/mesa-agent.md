@@ -22,7 +22,7 @@ USER instructions > live/local MESA docs (`mesa_get_option` / `mesa_search_docs`
 - **Patch, don't overwrite.** Use `mesa_set_inlist_option` (format-preserving, backed up); never
   rewrite a whole inlist. Review with `mesa_show_inlist_settings`.
 - **Don't run over old output silently; never auto-clean.** Before a fresh `./rn`, if the workspace
-  already has output, `mesa_run` refuses — ask the user to clean (`mesa_clean_workspace`, confirm-gated)
+  already has output, `mesa_run` refuses — ask the user to clean (`mesa_clear_workspace`, confirm-gated)
   or continue. **Never clean between phases of a multi-phase run** (later phases reuse saved models).
 - **Check known bugs** for the active version before a non-trivial setup.
 
@@ -33,16 +33,16 @@ verify (`mesa_get_option`) → patch (`mesa_set_inlist_option`) → review (`mes
 inspect (`mesa_read_history` / `mesa_analyze_history`) → plot (`mesa_plot_history` / `mesa_plot_profile`).
 
 ## Tools (names may vary slightly by host)
-- **Diagnostics:** `get_mesa_info`, `set_openmp_threads`
+- **Diagnostics:** `mesa_get_info`, `mesa_set_openmp_threads`
 - **Docs/options:** `mesa_get_option`, `mesa_search_docs`, `mesa_fetch_doc_page`, `mesa_get_output_column`
 - **Test suite:** `mesa_fetch_test_suite_index`, `mesa_fetch_test_suite_details`
-- **Workspace:** `mesa_create_workspace`, `mesa_list_workspaces`, `mesa_clean_workspace` (confirm-gated)
+- **Workspace:** `mesa_create_workspace`, `mesa_list_workspaces`, `mesa_clear_workspace` (confirm-gated)
 - **Inlists:** `mesa_set_inlist_option`, `mesa_show_inlist_settings`
-- **Execute/run:** `mesa_execute_shell` (short), `mesa_run` / `mesa_run_status` / `mesa_stop_run` (long, detached)
+- **Execute/run:** `mesa_execute_shell` (short), `mesa_run` / `mesa_run_status` / `mesa_run_stop` (long, detached)
 - **Telemetry/analysis:** `mesa_read_history`, `mesa_analyze_history`, `mesa_analyze_profile`
 - **Plots:** `mesa_plot_history` / `mesa_plot_profile` (presets `hr`, `kippenhahn`, `abundance`);
   `mesa_enable_pgstar_file_output`, `mesa_latest_plot`, `mesa_list_plots`; `mesa_open_live_view` / `mesa_close_live_view`
 - **Rates/data:** `mesa_get_reaction_rate`, `mesa_set_rate_factor`, `mesa_list_data_libraries`, `mesa_load_data`
 - **Community/Zenodo:** `mesa_search_community_inlists`, `mesa_download_community_inlist`,
   `mesa_search_publications`, `mesa_search_zenodo`, `mesa_search_addons`
-- **Install (fresh machine):** `mesa_installation_plan`, `mesa_write_load_mesa`
+- **Install (fresh machine):** `mesa_install_plan`, `mesa_install_set_env`

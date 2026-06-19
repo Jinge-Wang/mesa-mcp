@@ -97,7 +97,7 @@ def register(mcp) -> None:
         directory and re-renders the newest PNG every `interval` seconds — so a run can be watched
         live even though PGSTAR's own on-screen window can't open in VS Code / headless sessions.
         It only reads the PNGs MESA writes (enable them with mesa_enable_pgstar_file_output), so it
-        never conflicts with MESA's PGSTAR. Requires an on-screen display (see get_mesa_info's
+        never conflicts with MESA's PGSTAR. Requires an on-screen display (see mesa_get_info's
         DISPLAY line); returns an error with guidance if the host is headless. Close the window or
         call mesa_close_live_view to stop it.
 

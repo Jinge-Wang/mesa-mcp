@@ -28,7 +28,7 @@ If the local/live docs for the installed MESA version disagree with this skill, 
 controls are renamed and added between versions. Re-check periodically that you're still following these rules.
 
 ## Tools (names may vary by host; use the closest match)
-- `get_mesa_info` — confirm the toolchain, MESA version, and docs source first.
+- `mesa_get_info` — confirm the toolchain, MESA version, and docs source first.
 - `mesa_get_option` — a control's exact default + documentation (the precise way to verify before writing).
 - `mesa_search_docs` / `mesa_fetch_doc_page` — search/read the docs and all options (controls, guides, known bugs).
 - `mesa_fetch_test_suite_index` / `mesa_fetch_test_suite_details` — find a verified baseline and copy its real inlists.
@@ -38,16 +38,16 @@ controls are renamed and added between versions. Re-check periodically that you'
 - `mesa_search_community_inlists` / `mesa_download_community_inlist` — find & fetch published community inlists (ephemeral).
 - `mesa_search_publications` — find papers that used MESA (Zenodo community).
 - `mesa_execute_shell` — run a short command (`./mk`, `shmesa …`) in a work folder (bounded, blocking).
-- `mesa_run` / `mesa_run_status` / `mesa_stop_run` — start a long run (`./rn`/`./re`) DETACHED (non-blocking), follow progress, and cancel. `mesa_run_status` returns JSON (status + the latest model's history columns), not raw terminal text.
-- `mesa_clean_workspace` — reset a workspace by removing run output (LOGS/, photos/, png/, run state). Confirm-gated; dry-runs unless `confirm=True`. Never touches inlists/src.
+- `mesa_run` / `mesa_run_status` / `mesa_run_stop` — start a long run (`./rn`/`./re`) DETACHED (non-blocking), follow progress, and cancel. `mesa_run_status` returns JSON (status + the latest model's history columns), not raw terminal text.
+- `mesa_clear_workspace` — reset a workspace by removing run output (LOGS/, photos/, png/, run state). Confirm-gated; dry-runs unless `confirm=True`. Never touches inlists/src.
 - `mesa_enable_pgstar_file_output` / `mesa_latest_plot` / `mesa_list_plots` — view PGSTAR plots headlessly (file output), since the on-screen window won't open in VS Code.
 - `mesa_plot_history` / `mesa_plot_profile` — render plots directly (matplotlib; presets `hr`, `abundance`) instead of writing a script.
 - `mesa_analyze_history` / `mesa_analyze_profile` — extract core masses, central abundances, evolutionary phase, convective zones.
-- `mesa_open_live_view` / `mesa_close_live_view` — open a separate auto-refreshing window for a run (only where `get_mesa_info` reports a display).
+- `mesa_open_live_view` / `mesa_close_live_view` — open a separate auto-refreshing window for a run (only where `mesa_get_info` reports a display).
 - `mesa_get_reaction_rate` / `mesa_set_rate_factor` — query a reaction's REACLIB rate at T; scale a specific rate.
 - `mesa_list_data_libraries` / `mesa_load_data` — browse `data/`; load networks, solar abundances, isotopes.
-- `mesa_installation_plan` / `mesa_write_load_mesa` — for a fresh machine: find the release+SDK and add a `load_mesa` helper.
-- `set_openmp_threads` — set parallelism (typically the available core count).
+- `mesa_install_plan` / `mesa_install_set_env` — for a fresh machine: find the release+SDK and add a `load_mesa` helper.
+- `mesa_set_openmp_threads` — set parallelism (typically the available core count).
 
 ## Non-negotiables
 - **MESA core is read-only.** Never create, edit, delete, compile, or run inside the MESA install
@@ -68,7 +68,7 @@ controls are renamed and added between versions. Re-check periodically that you'
   review the result with `mesa_show_inlist_settings`.
 - **Don't run over old output silently; never auto-clean.** Before a fresh `./rn`, if the workspace
   already has run output (`mesa_run` will refuse and list it), **ask the user**: clean it with
-  `mesa_clean_workspace` (always dry-run + confirm with the user first), or proceed via
+  `mesa_clear_workspace` (always dry-run + confirm with the user first), or proceed via
   `on_existing="continue"`. **Never clean between phases of a multi-phase run** — a later phase loads
   the model/photo saved by an earlier one; resume with `./re` or the next `./rn` and keep prior output.
 - **Check known issues.** Before a non-trivial setup, check `known bugs` for the active version.
