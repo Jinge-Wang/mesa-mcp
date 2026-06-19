@@ -90,7 +90,20 @@ cat <<NEXT
 
 $(info "Setup complete. Next steps:")
 
-  Claude Code (plugin + MCP server + skill):
+  VS Code Native MCP / GitHub Copilot:
+    Open the Command Palette (Cmd/Ctrl+Shift+P) -> "MCP: Open User Configuration"
+    and add the contents of: $REPO_ROOT/.mcp.json
+
+  Claude VS Code Extension:
+    Manually edit ~/.claude.json and paste the "mesa" JSON block from:
+    $REPO_ROOT/.mcp.json
+
+  Cline, Roo Code, or other VS Code Extensions:
+    Copy the "mesa" JSON block from:
+    $REPO_ROOT/.mcp.json
+    ...and paste it into your extension's specific MCP settings file.
+
+  Claude Code CLI (plugin + MCP server + skill):
     claude plugin marketplace add "$REPO_ROOT/marketplace"
     claude plugin install mesa@mesa-mcp
     # ...or just the server:  claude mcp add mesa -- uv run --directory "$REPO_ROOT" python main.py
@@ -104,5 +117,8 @@ $(info "Setup complete. Next steps:")
     gemini mcp add mesa uv run --directory "$REPO_ROOT" python main.py
 
   Full support matrix + details: the "Platform support" section of $REPO_ROOT/README.md
-  Then reload the client and call mesa_get_info to confirm the toolchain.
+  
+  Finally:
+  1. Restart your client (relaunch the CLI, or use Cmd/Ctrl+Shift+P -> "Developer: Reload Window" in VS Code).
+  2. Ask the AI: "Please call the mesa_get_info tool to confirm your toolchain is working."
 NEXT

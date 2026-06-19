@@ -30,7 +30,8 @@ def _return_plot(res: dict):
 def register(mcp) -> None:
     @mcp.tool()
     def mesa_plot_history(workspace: str, x: str = "model_number", y: str = "log_L",
-                          preset: str = "", logx: bool = False, logy: bool = False):
+                          preset: str = "", logx: bool = False, logy: bool = False,
+                          star: str = ""):
         """Plot history.data columns and return the image inline (saves a PNG under
         `<workspace>/plots`). Use this instead of writing a plotting script.
 
@@ -41,24 +42,30 @@ def register(mcp) -> None:
         - Otherwise plot `y` (comma-separated for multiple series) versus `x`, e.g.
           x="star_age", y="log_L,log_Teff".
 
+        For a **binary** run, set `star` to `"1"`/`"2"` (a component's LOGS1/LOGS2) or `"binary"`.
+
         Args:
             workspace: the work-folder path (must have LOGS/history.data).
             x: history column for the x-axis.
             y: history column(s) for the y-axis (comma-separated allowed).
-            preset: "" or "hr".
+            preset: "", "hr", or "kippenhahn".
             logx / logy: log-scale the axes.
+            star: binary component selector — '1', '2', 'binary', or '' (single-star).
         """
-        return _return_plot(plotting.plot_history(build_env_context(), workspace, x, y, preset, logx, logy))
+        return _return_plot(plotting.plot_history(build_env_context(), workspace, x, y, preset,
+                                                  logx, logy, star))
 
     @mcp.tool()
     def mesa_plot_profile(workspace: str, x: str = "mass", y: str = "logRho",
                           preset: str = "", profile_number: int = 0,
-                          logx: bool = False, logy: bool = False):
+                          logx: bool = False, logy: bool = False, star: str = ""):
         """Plot one saved profile's columns and return the image inline (PNG under
         `<workspace>/plots`).
 
         - `preset="abundance"` plots mass-fraction profiles of the common isotopes vs mass (log y).
         - Otherwise plot `y` (comma-separated) versus `x` (default mass).
+
+        For a **binary** run, set `star` to `"1"`/`"2"` to use that component's LOGS1/LOGS2 profiles.
 
         Args:
             workspace: the work-folder path (must have LOGS/profile*.data).
@@ -67,6 +74,7 @@ def register(mcp) -> None:
             preset: "" or "abundance".
             profile_number: which saved profile (0 = latest).
             logx / logy: log-scale the axes.
+            star: binary component selector — '1', '2', or '' (single-star).
         """
         return _return_plot(plotting.plot_profile(build_env_context(), workspace, x, y, preset,
-                                                  profile_number, logx, logy))
+                                                  profile_number, logx, logy, star))

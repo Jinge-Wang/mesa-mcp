@@ -13,7 +13,7 @@ The MCP server and its tools are identical across hosts; only registration diffe
 
 | Host | Status | Setup |
 |---|---|---|
-| **Claude Code / VS Code** | ✅ Primary | `./install.sh` (writes the plugin + `.mcp.json`). |
+| **Claude Code (VS Code)** | ✅ Supported | `./install.sh` (writes the plugin + `.mcp.json`). |
 | **Antigravity** | ✅ Supported | Add the ready-made `marketplace/antigravity/mesa/mcp_config.json` to `~/.gemini/config/mcp_config.json`; load `marketplace/mesa-agent.md` as a context file. |
 | **Gemini CLI** | ⚠️ Obsolete → use Antigravity | `gemini mcp add mesa uv run --directory <repo> python main.py`. |
 | **Cursor / Codex / Copilot CLI** | 🔜 Planned | Stub plugin dirs under `marketplace/` (`TODO.md` markers). |
@@ -116,6 +116,9 @@ Tools group as follows (paired names share a logic module):
 - `mesa_get_output_column` / `mesa_read_history` — look up output columns; read a sliced `history.data`.
 - `mesa_analyze_history` / `mesa_analyze_profile` — extract core masses, central abundances, evolutionary phase, convective zones, burning regions.
 - `mesa_plot_history` / `mesa_plot_profile` — render plots (matplotlib → inline PNG); presets `hr`, `kippenhahn`, `abundance`.
+- `mesa_run_gyre` — run GYRE on a pulsation model and parse its mode summary (when GYRE is built).
+
+The telemetry/analysis/plotting tools take a `star` selector (`1`/`2`/`binary`) for binary runs.
 
 **Visualization (PGSTAR & live view)**
 - `mesa_enable_pgstar_file_output` / `mesa_latest_plot` / `mesa_list_plots` — enable & view PGSTAR plots headlessly (file output).
@@ -139,11 +142,12 @@ ecosystem is uneven — treat the "partial" and "not yet" rows as **not fully te
 |---|---|
 | **Single-star (`star`)** — diagnostics, docs/option lookup, test-suite replication, workspaces, inlist editing, run + monitor, telemetry/analysis/plotting | ✅ Supported & exercised |
 | **Nuclear rates (`net`/REACLIB)** and the **network / Lodders-abundance / isotope** data libraries | ✅ Supported |
-| **`binary`** — workspace template + `&binary_controls` options | ⚠️ Partial (less end-to-end testing) |
-| **`astero`** — `&astero_search_controls` options via the reference layer | ⚠️ Partial (no asteroseismic post-processing) |
+| **`binary`** — template + `&binary_controls`; telemetry/analysis/plotting via the `star` selector (`1`/`2`/`binary`) | ✅ Supported (per-component history/profile) |
+| **GYRE** — run on a pulsation model + parse modes (`mesa_run_gyre`, when GYRE is built) | ⚠️ Runnable; the MESA→GYRE pulse-file step isn't configured yet |
+| **`astero`** — `&astero_search_controls` options via the reference layer | ⚠️ Partial (no asteroseismic search workflow) |
 | **`colors`** — filter sets (by survey) + stellar-model grids via `mesa_load_data` | ⚠️ Parsed/inventoried (no magnitude pipeline yet) |
 | **Other `data/` libraries** (`atm`, `eos`, `kap`, `ionization`, `roche`) | ⚠️ Structured inventory via `mesa_load_data`, not numerically parsed |
-| **GYRE / adipls** (stellar oscillations / asteroseismology) | ⚠️ Detected/reported by `mesa_get_info`, not driven |
+| **adipls** (alternative oscillation code) | ❌ Not driven |
 | **Platform** | macOS (Apple Silicon) tested; Linux supported by design but less exercised; Windows unsupported |
 
 Broadening this coverage is tracked as **Phase 14** in the [roadmap](docs/roadmap.md).

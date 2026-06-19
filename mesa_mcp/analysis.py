@@ -36,14 +36,14 @@ def _phase(center: dict) -> str:
     return "late / unknown phase (central H and He depleted)"
 
 
-def analyze_history(env: dict, workspace: str) -> dict:
+def analyze_history(env: dict, workspace: str, star: str = "") -> dict:
     import numpy as np
     import os
     ws = os.path.abspath(os.path.expanduser(workspace))
     if not os.path.isdir(ws):
         return {"error": f"Workspace not found: {ws}"}
     try:
-        md = columns.load_mesa_data(ws, file_type="history")
+        md = columns.load_mesa_data(ws, file_type="history", star=star)
     except RuntimeError as e:
         return {"error": str(e)}
 
@@ -100,13 +100,13 @@ def _zones(mass, mixing_type) -> list:
     return out
 
 
-def analyze_profile(env: dict, workspace: str, profile_number: int = 0) -> dict:
+def analyze_profile(env: dict, workspace: str, profile_number: int = 0, star: str = "") -> dict:
     import numpy as np
     import os
     ws = os.path.abspath(os.path.expanduser(workspace))
     if not os.path.isdir(ws):
         return {"error": f"Workspace not found: {ws}"}
-    pf = _resolve_profile(ws, profile_number)
+    pf = _resolve_profile(ws, profile_number, star)
     if not pf:
         return {"error": f"No profile*.data found in {ws}/LOGS (save profiles first)."}
     try:

@@ -35,9 +35,12 @@ def _pyplot():
     return plt
 
 
-def _resolve_profile(ws: str, profile_number: int = 0) -> "str | None":
-    """Resolve a profile.data path in a workspace (latest by profile number if 0)."""
-    cands = sorted(glob.glob(os.path.join(ws, "LOGS*", "profile*.data"))
+def _resolve_profile(ws: str, profile_number: int = 0, star: str = "") -> "str | None":
+    """Resolve a profile.data path in a workspace (latest by profile number if 0).
+
+    ``star`` ('1'/'2') restricts to a binary component's LOGS1/LOGS2; '' = any LOGS*."""
+    logs = f"LOGS{star}" if str(star).strip() in ("1", "2") else "LOGS*"
+    cands = sorted(glob.glob(os.path.join(ws, logs, "profile*.data"))
                    + glob.glob(os.path.join(ws, "profile*.data")))
     if not cands:
         return None
@@ -96,13 +99,15 @@ def _plot_kippenhahn(ws: str, md, xcol: str) -> dict:
 
 
 def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "log_L",
-                 preset: str = "", logx: bool = False, logy: bool = False) -> dict:
-    """Plot one or more history columns (``y`` may be comma-separated) versus ``x``."""
+                 preset: str = "", logx: bool = False, logy: bool = False, star: str = "") -> dict:
+    """Plot one or more history columns (``y`` may be comma-separated) versus ``x``.
+
+    ``star`` selects a binary component ('1'/'2'/'binary'); '' = single-star."""
     ws = os.path.abspath(os.path.expanduser(workspace))
     if not os.path.isdir(ws):
         return {"error": f"Workspace not found: {ws}"}
     try:
-        md = columns.load_mesa_data(ws, file_type="history")
+        md = columns.load_mesa_data(ws, file_type="history", star=star)
     except RuntimeError as e:
         return {"error": str(e)}
 
@@ -144,7 +149,9 @@ def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "l
     ax.grid(alpha=0.3)
     fig.tight_layout()
 
-    name = "hr.png" if preset.lower() == "hr" else f"history_{'_'.join(ys)}_vs_{x}.png"
+    suffix = f"_star{star}" if str(star).strip() else ""
+    name = (f"hr{suffix}.png" if preset.lower() == "hr"
+            else f"history_{'_'.join(ys)}_vs_{x}{suffix}.png")
     out = os.path.join(_plots_dir(ws), name)
     fig.savefig(out, dpi=120)
     plt.close(fig)
@@ -154,12 +161,14 @@ def plot_history(env: dict, workspace: str, x: str = "model_number", y: str = "l
 
 def plot_profile(env: dict, workspace: str, x: str = "mass", y: str = "logRho",
                  preset: str = "", profile_number: int = 0,
-                 logx: bool = False, logy: bool = False) -> dict:
-    """Plot profile columns (``y`` comma-separated) versus ``x`` for one saved profile."""
+                 logx: bool = False, logy: bool = False, star: str = "") -> dict:
+    """Plot profile columns (``y`` comma-separated) versus ``x`` for one saved profile.
+
+    ``star`` ('1'/'2') selects a binary component's LOGS1/LOGS2 profiles; '' = single-star."""
     ws = os.path.abspath(os.path.expanduser(workspace))
     if not os.path.isdir(ws):
         return {"error": f"Workspace not found: {ws}"}
-    pf = _resolve_profile(ws, profile_number)
+    pf = _resolve_profile(ws, profile_number, star)
     if not pf:
         return {"error": f"No profile*.data found in {ws}/LOGS (save profiles first)."}
     try:
@@ -201,7 +210,8 @@ def plot_profile(env: dict, workspace: str, x: str = "mass", y: str = "logRho",
     fig.tight_layout()
 
     tag = "abundance" if title else f"{'_'.join(ys)}_vs_{x}"
-    out = os.path.join(_plots_dir(ws), f"profile_{tag}.png")
+    suffix = f"_star{star}" if str(star).strip() else ""
+    out = os.path.join(_plots_dir(ws), f"profile_{tag}{suffix}.png")
     fig.savefig(out, dpi=120)
     plt.close(fig)
     return {"path": out, "profile": os.path.basename(pf), "x": x, "y": ys,

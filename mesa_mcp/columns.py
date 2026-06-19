@@ -84,9 +84,23 @@ def lookup(env: dict, name: str, kind: str = "history") -> dict:
     return {"exact": exact, "related": related, "kind": kind, "total": len(cols)}
 
 
-def _resolve_history_file(path: str) -> "str | None":
+def _resolve_history_file(path: str, star: str = "") -> "str | None":
+    """Resolve a history.data file. ``star`` selects a binary component: '1'/'2' →
+    LOGS1/LOGS2; 'binary' → binary_history.data; '' → single-star (LOGS/history.data)."""
     if os.path.isfile(path):
         return path
+    sel = str(star).strip().lower()
+    if sel in ("binary", "b"):
+        for cand in (os.path.join(path, "binary_history.data"),
+                     os.path.join(path, "LOGS", "binary_history.data")):
+            if os.path.isfile(cand):
+                return cand
+        matches = (sorted(glob.glob(os.path.join(path, "LOGS*", "binary_history.data")))
+                   or sorted(glob.glob(os.path.join(path, "binary_history.data"))))
+        return matches[0] if matches else None
+    if sel in ("1", "2"):
+        cand = os.path.join(path, f"LOGS{sel}", "history.data")
+        return cand if os.path.isfile(cand) else None
     for cand in (os.path.join(path, "LOGS", "history.data"),
                  os.path.join(path, "history.data")):
         if os.path.isfile(cand):
@@ -95,7 +109,7 @@ def _resolve_history_file(path: str) -> "str | None":
     return matches[0] if matches else None
 
 
-def load_mesa_data(path: str, file_type: "str | None" = None):
+def load_mesa_data(path: str, file_type: "str | None" = None, star: str = ""):
     """Canonical numeric loader: return a ``mesa_reader.MesaData`` for a history/profile file.
 
     This is the data path for the analysis/plotting tools (numpy-backed columns via
@@ -105,7 +119,7 @@ def load_mesa_data(path: str, file_type: "str | None" = None):
     ``.data`` file as a log. Raises RuntimeError if unavailable.
     """
     p = os.path.abspath(os.path.expanduser(path))
-    resolved = _resolve_history_file(p) if (file_type != "profile") else (p if os.path.isfile(p) else None)
+    resolved = _resolve_history_file(p, star) if (file_type != "profile") else (p if os.path.isfile(p) else None)
     resolved = resolved or (p if os.path.isfile(p) else None)
     if not resolved:
         raise RuntimeError(f"No data file found at or under {p}.")
@@ -130,13 +144,14 @@ def _coerce(v: str):
         return v
 
 
-def latest_model(env: dict, path: str) -> dict:
+def latest_model(env: dict, path: str, star: str = "") -> dict:
     """Return the most recent history.data row as an aligned {column: value} dict (all columns).
 
     Values are numerically coerced where possible. Returns {} if no usable history exists yet.
+    ``star`` selects a binary component ('1'/'2'/'binary'); '' = single-star.
     """
     p = os.path.abspath(os.path.expanduser(path))
-    data_file = _resolve_history_file(p)
+    data_file = _resolve_history_file(p, star)
     if not data_file:
         return {}
     with open(data_file, "r", encoding="utf-8", errors="replace") as f:
@@ -149,14 +164,15 @@ def latest_model(env: dict, path: str) -> dict:
 
 
 def read_history(env: dict, path: str, columns: "list | None" = None,
-                 last_n: int = 20, every: int = 1) -> dict:
+                 last_n: int = 20, every: int = 1, star: str = "") -> dict:
     """Read a run's history.data and return a selected, downsampled slice.
 
     The MESA .data layout (blank lines removed) is: header numbers / header names / header
-    values / data numbers / data names / data rows.
+    values / data numbers / data names / data rows. ``star`` selects a binary component
+    ('1'/'2'/'binary'); '' = single-star.
     """
     p = os.path.abspath(os.path.expanduser(path))
-    data_file = _resolve_history_file(p)
+    data_file = _resolve_history_file(p, star)
     if not data_file:
         return {"error": f"No history.data found at or under {p} (has the run produced output?)."}
 

@@ -43,7 +43,8 @@ controls are renamed and added between versions. Re-check periodically that you'
 - `mesa_clear_workspace` — reset a workspace by removing run output (LOGS/, photos/, png/, run state). Confirm-gated; dry-runs unless `confirm=True`. Never touches inlists/src.
 - `mesa_enable_pgstar_file_output` / `mesa_latest_plot` / `mesa_list_plots` — view PGSTAR plots headlessly (file output), since the on-screen window won't open in VS Code.
 - `mesa_plot_history` / `mesa_plot_profile` — render plots directly (matplotlib; presets `hr`, `abundance`) instead of writing a script.
-- `mesa_analyze_history` / `mesa_analyze_profile` — extract core masses, central abundances, evolutionary phase, convective zones.
+- `mesa_analyze_history` / `mesa_analyze_profile` — extract core masses, central abundances, evolutionary phase, convective zones. (For binary runs, pass `star="1"`/`"2"`/`"binary"`; also on `mesa_read_history`/`mesa_plot_*`.)
+- `mesa_run_gyre` — run GYRE on a pulsation model and parse its mode frequencies (when GYRE is built).
 - `mesa_open_live_view` / `mesa_close_live_view` — open a separate auto-refreshing window for a run (only where `mesa_get_info` reports a display).
 - `mesa_get_reaction_rate` / `mesa_set_rate_factor` — query a reaction's REACLIB rate at T; scale a specific rate.
 - `mesa_list_data_libraries` / `mesa_load_data` — browse `data/`; load networks, solar abundances, isotopes.

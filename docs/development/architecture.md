@@ -39,6 +39,7 @@ rates.py         Parse data/rates_data REACLIB + reactions.list; evaluate a rate
 data_libs.py     Read-only data/ access: list libraries; parse .net networks, Lodders abundances,
                  isotope properties, colors filters/models; structured inventory for the rest.
 docs_server.py   Serve the local MESA docs over HTTP (detached); optional sphinx-build → cached HTML.
+gyre.py          Run GYRE on a pulsation model (when built) + parse its text mode summary.
 plotting.py      matplotlib (Agg) history/profile plots → PNG under <ws>/plots; presets hr
                  (credit Gautschy's SimpleMesaHRD) and abundance. Built on columns.load_mesa_data.
 analysis.py      Extract stellar properties: analyze_history (core masses, central abundances,
@@ -68,7 +69,11 @@ tools/            Thin FastMCP wrappers (no logic):
   analysis.py    mesa_analyze_history, mesa_analyze_profile.
   viz.py         …also mesa_open_live_view, mesa_close_live_view (live_view.py).
   install.py     mesa_install_plan, mesa_install_set_env.
+  gyre.py        mesa_run_gyre.
   execution.py   mesa_execute_shell.
+
+Binary runs: the telemetry/analysis/plotting tools take a `star` selector ('1'/'2' → LOGS1/LOGS2,
+'binary' → binary_history.data), threaded through columns._resolve_history_file / load_mesa_data.
 
 Planned (Phase 13): knowledge/Zenodo/add-ons expansion — Zenodo software + paper-linked inlists,
 marketplace add-ons, extending_mesa research, Kippenhahn via ecosystem-tool discovery.

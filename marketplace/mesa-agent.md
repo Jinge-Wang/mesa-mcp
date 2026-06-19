@@ -39,7 +39,7 @@ inspect (`mesa_read_history` / `mesa_analyze_history`) → plot (`mesa_plot_hist
 - **Workspace:** `mesa_create_workspace`, `mesa_list_workspaces`, `mesa_clear_workspace` (confirm-gated)
 - **Inlists:** `mesa_set_inlist_option`, `mesa_show_inlist_settings`
 - **Execute/run:** `mesa_execute_shell` (short), `mesa_run` / `mesa_run_status` / `mesa_run_stop` (long, detached)
-- **Telemetry/analysis:** `mesa_read_history`, `mesa_analyze_history`, `mesa_analyze_profile`
+- **Telemetry/analysis:** `mesa_read_history`, `mesa_analyze_history`, `mesa_analyze_profile` (binary: pass `star`='1'/'2'/'binary'); `mesa_run_gyre` (oscillations, when GYRE is built)
 - **Plots:** `mesa_plot_history` / `mesa_plot_profile` (presets `hr`, `kippenhahn`, `abundance`);
   `mesa_enable_pgstar_file_output`, `mesa_latest_plot`, `mesa_list_plots`; `mesa_open_live_view` / `mesa_close_live_view`
 - **Rates/data:** `mesa_get_reaction_rate`, `mesa_set_rate_factor`, `mesa_list_data_libraries`, `mesa_load_data`

@@ -64,17 +64,22 @@ def register(mcp) -> None:
         return _format_column(columns_mod.lookup(build_env_context(), name, kind), name)
 
     @mcp.tool()
-    def mesa_read_history(path: str, columns: str = "", last_n: int = 20, every: int = 1) -> str:
+    def mesa_read_history(path: str, columns: str = "", last_n: int = 20, every: int = 1,
+                          star: str = "") -> str:
         """Read a context-efficient slice of a run's `LOGS/history.data`: only the selected
         columns, the last N models, optionally downsampled — never the whole table. Use this
         instead of cat-ing history.data.
+
+        For a **binary** run, set `star` to `"1"` or `"2"` for that component's LOGS1/LOGS2
+        history, or `"binary"` for `binary_history.data`.
 
         Args:
             path: a workspace directory, a LOGS directory, or a history.data file.
             columns: comma/space-separated column names (default: a key set if present).
             last_n: number of most-recent models to show (default 20).
             every: stride for downsampling rows (default 1 = every model).
+            star: binary component selector — '1', '2', 'binary', or '' (single-star).
         """
         cols = [c for c in re.split(r"[,\s]+", columns.strip()) if c] or None
-        res = columns_mod.read_history(build_env_context(), path, cols, last_n, every)
+        res = columns_mod.read_history(build_env_context(), path, cols, last_n, every, star)
         return _format_history(res)
