@@ -5,7 +5,10 @@ It bridges an AI coding assistant and a local installation of **MESA** ([Modules
 
 > **Status:** See the [roadmap](docs/roadmap.md) for the full implementation history and remaining ideas.
 
-> **Example sessions:** the server has been driven end-to-end (build + run a star) from Antigravity and Gemini CLI; recorded histories are in [docs/examples/](docs/examples/). (Those transcripts predate the tool-naming reorganization below.)
+> **Example sessions:** 
+the server has been driven end-to-end (build + run a star) from Antigravity and Gemini CLI; recorded histories are in [docs/examples/](docs/examples/). (The later transcript predates the tool-naming reorganization below.)
+
+The worked [antigravity CLI transcript](docs/examples/sample-antigravity-cli.html) demonstrates the agent successfully working out the simulation settings for the first lab of the MESA Summer School 2026, without any prior knowledge of the curriculum. While this is a relatively naive problem, it highlights the agent's ability to navigate the MESA documentation, configure the workspace, and debug live errors. The agent does require some further improvement regarding domain-specific nuances (for example, initially navigating the a09 opacity tables before being prompted to use the hand-smoothed nans-removed table for the AGSS09 result).
 
 ## Tool naming at a glance
 
